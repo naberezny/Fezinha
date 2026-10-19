@@ -3,6 +3,7 @@ import {
   apostasEquivalentes,
   atrasoEsperado,
   calcularEstatisticas,
+  compararDezenas,
   dezenaValida,
   filtrosPadrao,
   formatarDezena,
@@ -397,12 +398,12 @@ export class GerarEstado {
     this._estrategia.set(estrategia);
   }
 
-  /** Normaliza: dezenas válidas e distintas, em ordem crescente, no máximo `dezenasPorJogo`. */
+  /** Normaliza: dezenas válidas e distintas, na ordem do volante, no máximo `dezenasPorJogo`. */
   definirFixas(dezenas: number[]): void {
     const definicao = this.loteria();
     const validas = [...new Set(dezenas)]
       .filter((dezena) => dezenaValida(dezena, definicao))
-      .sort((a, b) => a - b);
+      .sort(compararDezenas(definicao));
     this._fixas.set(validas.slice(0, this.dezenasPorJogo()));
   }
 

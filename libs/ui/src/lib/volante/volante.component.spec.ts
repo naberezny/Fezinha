@@ -85,7 +85,7 @@ describe('VolanteComponent', () => {
     expect(botao(60).getAttribute('aria-label')).toBe('dezena 60, quadrante 4');
   });
 
-  describe('com a definição da Lotomania (00..99)', () => {
+  describe('com a definição da Lotomania (01..99 e 00 por último, como no bilhete)', () => {
     beforeEach(async () => {
       fixture = TestBed.createComponent(VolanteComponent);
       fixture.componentRef.setInput('definicao', lotomania);
@@ -93,18 +93,19 @@ describe('VolanteComponent', () => {
       await fixture.whenStable();
     });
 
-    const botaoDaDezena = (dezena: number) => botoes()[dezena];
+    const botaoDaDezena = (dezena: number) => botoes()[dezena === 0 ? 99 : dezena - 1];
 
-    it('renderiza 100 botões na grade 10x10, do 00 ao 99', () => {
+    it('renderiza 100 botões na grade 10x10, do 01 ao 99 e o 00 por último', () => {
       // Arrange / Act
       const rotulos = botoes().map((b) => b.textContent?.trim());
 
       // Assert
       expect(botoes()).toHaveLength(100);
       expect((fixture.nativeElement as HTMLElement).style.gridTemplateColumns).toContain('repeat(10');
-      expect(rotulos[0]).toBe('00');
-      expect(rotulos[9]).toBe('09');
-      expect(rotulos[99]).toBe('99');
+      expect(rotulos[0]).toBe('01');
+      expect(rotulos[9]).toBe('10');
+      expect(rotulos[98]).toBe('99');
+      expect(rotulos[99]).toBe('00');
     });
 
     it('permite marcar a dezena 00 e a devolve como o número 0', async () => {
@@ -117,14 +118,26 @@ describe('VolanteComponent', () => {
       expect(fixture.componentInstance.selecionadas()).toEqual([0]);
     });
 
+    it('mantém a dezena 00 depois das demais nas selecionadas', async () => {
+      // Arrange / Act
+      botaoDaDezena(0).click();
+      botaoDaDezena(99).click();
+      botaoDaDezena(5).click();
+      await fixture.whenStable();
+
+      // Assert
+      expect(fixture.componentInstance.selecionadas()).toEqual([5, 99, 0]);
+    });
+
     it('descreve dezena e quadrante pelo rótulo de dois dígitos', () => {
       // Arrange / Act / Assert
-      expect(botaoDaDezena(0).getAttribute('aria-label')).toBe('dezena 00, quadrante 1');
-      expect(botaoDaDezena(4).getAttribute('aria-label')).toBe('dezena 04, quadrante 1');
-      expect(botaoDaDezena(5).getAttribute('aria-label')).toBe('dezena 05, quadrante 2');
-      expect(botaoDaDezena(9).getAttribute('aria-label')).toBe('dezena 09, quadrante 2');
-      expect(botaoDaDezena(50).getAttribute('aria-label')).toBe('dezena 50, quadrante 3');
+      expect(botaoDaDezena(1).getAttribute('aria-label')).toBe('dezena 01, quadrante 1');
+      expect(botaoDaDezena(5).getAttribute('aria-label')).toBe('dezena 05, quadrante 1');
+      expect(botaoDaDezena(6).getAttribute('aria-label')).toBe('dezena 06, quadrante 2');
+      expect(botaoDaDezena(10).getAttribute('aria-label')).toBe('dezena 10, quadrante 2');
+      expect(botaoDaDezena(51).getAttribute('aria-label')).toBe('dezena 51, quadrante 3');
       expect(botaoDaDezena(99).getAttribute('aria-label')).toBe('dezena 99, quadrante 4');
+      expect(botaoDaDezena(0).getAttribute('aria-label')).toBe('dezena 00, quadrante 4');
     });
   });
 

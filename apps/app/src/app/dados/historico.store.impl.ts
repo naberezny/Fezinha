@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { listarLoterias, registrarLoteria, validarDefinicao } from '@sorteios/core';
-import type { Historico, LoteriaDefinicao } from '@sorteios/core';
+import { compararDezenas, listarLoterias, registrarLoteria, validarDefinicao } from '@sorteios/core';
+import type { Concurso, Historico, LoteriaDefinicao } from '@sorteios/core';
 import { MEGA_SENA, registrarMegaSena } from '@sorteios/loterias/mega-sena/definicao';
 import { ApiServico } from './api.servico';
 import { CacheServico } from './cache.servico';
@@ -46,6 +46,12 @@ function gravarArmazenamento(chave: string, valor: string): void {
 function registrar(def: LoteriaDefinicao): void {
   if (listarLoterias().some((l) => l.id === def.id)) validarDefinicao(def);
   else registrarLoteria(def);
+}
+
+/** Histórico com as dezenas de cada concurso na ordem do volante (o 00 da Lotomania por último), vindo da rede ou do cache. */
+function montarHistorico(def: LoteriaDefinicao, concursos: Concurso[]): Historico {
+  const comparar = compararDezenas(def);
+  return { loteria: def, concursos: concursos.map((c) => ({ ...c, dezenas: [...c.dezenas].sort(comparar) })) };
 }
 
 /** Lê as definições conhecidas de uma sessão anterior; descarta as inválidas. Sempre devolve ao menos a Mega-Sena. */
@@ -191,7 +197,7 @@ export class HistoricoStoreImpl extends HistoricoStore {
     if (!emCache || emCache.concursos.length === 0) return;
     this._atualizarEstado(def.id, {
       etag: emCache.etag,
-      historico: { loteria: def, concursos: emCache.concursos },
+      historico: montarHistorico(def, emCache.concursos),
       atualizadoEm: emCache.atualizadoEm,
       somenteCache: true,
     });
@@ -202,7 +208,7 @@ export class HistoricoStoreImpl extends HistoricoStore {
       const resposta = await this._api.historico(def.id, etag);
       const agora = new Date().toISOString();
       if (resposta.status === 'ok') {
-        this._atualizarEstado(def.id, { etag: resposta.etag, historico: { loteria: def, concursos: resposta.concursos } });
+        this._atualizarEstado(def.id, { etag: resposta.etag, historico: montarHistorico(def, resposta.concursos) });
         await this._cache.gravarHistorico(def.id, resposta.etag, agora, resposta.concursos);
       }
       this._atualizarEstado(def.id, { atualizadoEm: agora, somenteCache: false, erro: undefined });

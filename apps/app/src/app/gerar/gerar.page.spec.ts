@@ -757,14 +757,15 @@ describe('GerarPage', () => {
       expect(store.selecionadas).toEqual([]);
     });
 
-    it('mostra o volante com 100 dezenas, de 00 a 99, na seção "Suas dezenas"', () => {
+    it('mostra o volante com 100 dezenas, de 01 a 99 e o 00 por último, na seção "Suas dezenas"', () => {
       // Arrange / Act
       const botoes = qa<HTMLButtonElement>('srt-volante button');
 
       // Assert
       expect(botoes).toHaveLength(100);
-      expect(botoes[0].textContent?.trim()).toBe('00');
-      expect(botoes[99].textContent?.trim()).toBe('99');
+      expect(botoes[0].textContent?.trim()).toBe('01');
+      expect(botoes[98].textContent?.trim()).toBe('99');
+      expect(botoes[99].textContent?.trim()).toBe('00');
       expect(q('srt-volante')?.getAttribute('aria-label')).toBe('volante da Lotomania');
     });
 
@@ -808,7 +809,7 @@ describe('GerarPage', () => {
 
     it('gera jogos de 50 dezenas entre 00 e 99 e mostra as bolas com dois dígitos', async () => {
       // Arrange
-      q<HTMLButtonElement>('srt-volante button')!.click(); // fixa a dezena 00
+      qa<HTMLButtonElement>('srt-volante button')[99].click(); // fixa a dezena 00 (última casa do volante)
       await fixture.whenStable();
 
       // Act
@@ -820,11 +821,13 @@ describe('GerarPage', () => {
       for (const jogo of jogos) {
         expect(jogo.dezenas).toHaveLength(50);
         expect(jogo.dezenas.every((d) => d >= 0 && d <= 99)).toBe(true);
-        expect(jogo.dezenas).toContain(0);
+        expect(jogo.dezenas.at(-1)).toBe(0);
       }
       expect(texto('#gerar-titulo-saida')).toBe('5 jogos · 50 dezenas · modo atrasadas');
       expect(qa('#gerar-jogos srt-bola')).toHaveLength(250);
-      expect(texto('#gerar-jogos srt-jogo srt-bola')).toContain('00');
+      const bolasDoPrimeiroJogo = qa('#gerar-jogos srt-jogo')[0].querySelectorAll('srt-bola');
+      expect(bolasDoPrimeiroJogo[0].textContent).not.toContain('00');
+      expect(bolasDoPrimeiroJogo[49].textContent).toContain('00'); // o 00 fecha o jogo, como no volante
     });
 
     it('a legenda do atraso cita o atraso esperado da Lotomania (5 concursos)', async () => {

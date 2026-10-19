@@ -593,8 +593,8 @@ describe('GerarEstado', () => {
       estado.definirFixas([99, 0, 100, -1, 5, 5]);
 
       // Assert
-      expect(estado.fixas()).toEqual([0, 5, 99]);
-      expect(estado.resumoFixas()).toBe('00 05 99 · o sistema completa 47');
+      expect(estado.fixas()).toEqual([5, 99, 0]);
+      expect(estado.resumoFixas()).toBe('05 99 00 · o sistema completa 47');
     });
 
     it('calcula o atraso de todas as dezenas, inclusive a 00', () => {
@@ -638,7 +638,7 @@ describe('GerarEstado', () => {
         expect(Math.max(...jogo.dezenas)).toBe(99);
       }
       expect(estado.tituloSaida()).toBe('3 jogos · 50 dezenas · modo atrasadas');
-      expect(estado.textoJogos().startsWith('Jogo 01: 00 ')).toBe(true);
+      expect(estado.textoJogos().split('\n')[0].endsWith(' 99 00')).toBe(true);
       expect(estado.jogosParaSalvar()[0].loteriaId).toBe('lotomania');
     });
   });

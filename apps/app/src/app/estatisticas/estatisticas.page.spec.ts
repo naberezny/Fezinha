@@ -530,15 +530,16 @@ describe('EstatisticasPage', () => {
       expect(texto(raiz(fixture).querySelector('[data-teste="soma"] h3'))).toBe('Soma das 20 dezenas');
     });
 
-    it('a frequência tem 100 barras, de 00 a 99, com largura mínima por barra (rolagem no celular)', async () => {
+    it('a frequência tem 100 barras, de 01 a 99 e o 00 por último, com largura mínima por barra (rolagem no celular)', async () => {
       // Arrange / Act
       const fixture = await renderizar();
 
       // Assert
       const itens = componente(fixture, GraficoBarrasVerticaisComponent).itens();
       expect(itens).toHaveLength(100);
-      expect(itens[0].rotulo).toBe('00');
-      expect(itens[99].rotulo).toBe('99');
+      expect(itens[0].rotulo).toBe('01');
+      expect(itens[98].rotulo).toBe('99');
+      expect(itens[99].rotulo).toBe('00');
       const svg = raiz(fixture).querySelector<SVGElement>('[data-teste="frequencia"] svg')!;
       expect(svg.style.minWidth).toBe('1644px'); // 36 + 8 + 100 x 16
       expect(raiz(fixture).querySelectorAll('[data-teste="frequencia"] rect.bar')).toHaveLength(100);
@@ -576,7 +577,7 @@ describe('EstatisticasPage', () => {
       expect(kpis(fixture)[3].valor).toBe(dois(maior.dezena));
     });
 
-    it('o mapa de calor tem 100 colunas rotuladas de 00 a 99 e rolagem horizontal', async () => {
+    it('o mapa de calor tem 100 colunas rotuladas de 01 a 99 e o 00 por último, com rolagem horizontal', async () => {
       // Arrange / Act
       const fixture = await renderizar();
 
@@ -585,8 +586,9 @@ describe('EstatisticasPage', () => {
       expect(mapa.colunas()).toBe(100);
       const cabecalho = Array.from(raiz(fixture).querySelectorAll('[data-teste="mapa-calor"] .hx span')).map((s) => s.textContent);
       expect(cabecalho).toHaveLength(101);
-      expect(cabecalho[1]).toBe('00');
-      expect(cabecalho[100]).toBe('99');
+      expect(cabecalho[1]).toBe('01');
+      expect(cabecalho[99]).toBe('99');
+      expect(cabecalho[100]).toBe('00');
       expect(raiz(fixture).querySelector('[data-teste="mapa-calor"] .r')!.querySelectorAll('.c')).toHaveLength(100);
       expect(raiz(fixture).querySelector<HTMLElement>('[data-teste="mapa-calor"] .heat')!.style.minWidth).toBe('1244px');
     });

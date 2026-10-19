@@ -4,7 +4,7 @@ import { aplicarFiltros, filtroColunas, filtroConsecutivas, filtroLinhas, filtro
 import { gerarJogos } from './geracao';
 import { calcularPesos } from './pesos';
 import { criarRng } from './rng';
-import { dezenasDe, dezenaValida, formatarDezena, ultimaDezena } from './tipos';
+import { compararDezenas, dezenaNaOrdem, dezenasDe, dezenaValida, formatarDezena, ordemNoVolante, ultimaDezena } from './tipos';
 import type { ConfiguracaoGeracao, ContextoFiltro, EstatisticaDezena, Historico } from './tipos';
 import { apostasEquivalentes, coluna, linha, quadrante } from './volante';
 
@@ -53,12 +53,31 @@ function contexto(): ContextoFiltro {
   return { def, historico: new Set() };
 }
 
+/** Ordem do volante da Lotomania: 01..99 e o 00 por último. */
+const ORDEM_VOLANTE = [...Array.from({ length: 99 }, (_, i) => i + 1), 0];
+
+function daDezena(estatisticas: EstatisticaDezena[], dezena: number): EstatisticaDezena {
+  return estatisticas.find((e) => e.dezena === dezena)!;
+}
+
 describe('helpers de dezena (primeiraDezena 0)', () => {
-  it('dezenasDe devolve 00..99 e ultimaDezena é 99', () => {
-    expect(dezenasDe(def)).toHaveLength(100);
-    expect(dezenasDe(def)[0]).toBe(0);
-    expect(dezenasDe(def)[99]).toBe(99);
+  it('dezenasDe segue o volante (01..99, 00 por último) e ultimaDezena é 99', () => {
+    expect(dezenasDe(def)).toEqual(ORDEM_VOLANTE);
     expect(ultimaDezena(def)).toBe(99);
+  });
+
+  it('ordemNoVolante põe o 00 na casa 100 e dezenaNaOrdem é o inverso', () => {
+    expect(ordemNoVolante(1, def)).toBe(1);
+    expect(ordemNoVolante(99, def)).toBe(99);
+    expect(ordemNoVolante(0, def)).toBe(100);
+    expect(dezenaNaOrdem(100, def)).toBe(0);
+    expect(dezenaNaOrdem(1, def)).toBe(1);
+    expect(dezenaNaOrdem(60, LOTERIA_TESTE)).toBe(60);
+  });
+
+  it('compararDezenas ordena com o 00 por último na Lotomania e numericamente na Mega-Sena', () => {
+    expect([0, 50, 1, 99].sort(compararDezenas(def))).toEqual([1, 50, 99, 0]);
+    expect([60, 1, 30].sort(compararDezenas(LOTERIA_TESTE))).toEqual([1, 30, 60]);
   });
 
   it('dezenaValida aceita 0 e 99 e rejeita 100, -1 e fracionários', () => {
@@ -83,18 +102,16 @@ describe('helpers de dezena (primeiraDezena 0)', () => {
 });
 
 describe('estatísticas com a dezena 00', () => {
-  it('devolve uma entrada por dezena, de 0 a 99', () => {
+  it('devolve uma entrada por dezena, na ordem do volante (01..99, 00)', () => {
     const estatisticas = calcularEstatisticas(criarHistorico(), { tipo: 'tudo' });
 
     expect(estatisticas).toHaveLength(100);
-    expect(estatisticas[0].dezena).toBe(0);
-    expect(estatisticas[99].dezena).toBe(99);
-    expect(estatisticas.map((e) => e.dezena)).toEqual(Array.from({ length: 100 }, (_, i) => i));
+    expect(estatisticas.map((e) => e.dezena)).toEqual(ORDEM_VOLANTE);
   });
 
   it('frequência, atraso e último concurso da dezena 00', () => {
     const estatisticas = calcularEstatisticas(criarHistorico(), { tipo: 'tudo' });
-    const zero = estatisticas[0];
+    const zero = daDezena(estatisticas, 0);
 
     expect(zero.frequencia).toBe(1);
     expect(zero.atraso).toBe(2);
@@ -106,13 +123,13 @@ describe('estatísticas com a dezena 00', () => {
   it('probAusencia é 0,8 ^ atraso (1 - 20/100)', () => {
     const estatisticas = calcularEstatisticas(criarHistorico(), { tipo: 'tudo' });
 
-    expect(estatisticas[0].probAusencia).toBeCloseTo(Math.pow(0.8, 2), 12);
-    expect(estatisticas[99].probAusencia).toBeCloseTo(Math.pow(0.8, 3), 12);
-    expect(estatisticas[21].probAusencia).toBe(1);
+    expect(daDezena(estatisticas, 0).probAusencia).toBeCloseTo(Math.pow(0.8, 2), 12);
+    expect(daDezena(estatisticas, 99).probAusencia).toBeCloseTo(Math.pow(0.8, 3), 12);
+    expect(daDezena(estatisticas, 21).probAusencia).toBe(1);
   });
 
   it('dezena que nunca saiu tem atraso igual ao total de concursos e sem último concurso', () => {
-    const nunca = calcularEstatisticas(criarHistorico(), { tipo: 'tudo' })[99];
+    const nunca = daDezena(calcularEstatisticas(criarHistorico(), { tipo: 'tudo' }), 99);
 
     expect(nunca.frequencia).toBe(0);
     expect(nunca.atraso).toBe(3);
@@ -126,9 +143,9 @@ describe('estatísticas com a dezena 00', () => {
       def,
     );
 
-    const tudo = calcularEstatisticas(historico, { tipo: 'tudo' })[0];
-    const ultimo = calcularEstatisticas(historico, { tipo: 'ultimos', quantidade: 1 })[0];
-    const semZero = calcularEstatisticas(historico, { tipo: 'ultimos', quantidade: 0 })[0];
+    const tudo = daDezena(calcularEstatisticas(historico, { tipo: 'tudo' }), 0);
+    const ultimo = daDezena(calcularEstatisticas(historico, { tipo: 'ultimos', quantidade: 1 }), 0);
+    const semZero = daDezena(calcularEstatisticas(historico, { tipo: 'ultimos', quantidade: 0 }), 0);
 
     expect(tudo.atraso).toBe(0);
     expect(tudo.frequencia).toBe(1);
@@ -158,7 +175,7 @@ describe('pesos com a dezena 00', () => {
 
     const pesos = calcularPesos(estatisticas, estatisticas, configuracao(), def);
 
-    expect([...pesos.keys()]).toEqual(Array.from({ length: 100 }, (_, i) => i));
+    expect([...pesos.keys()]).toEqual(ORDEM_VOLANTE);
     expect(pesos.get(0)).toBe(1);
   });
 
@@ -172,40 +189,47 @@ describe('pesos com a dezena 00', () => {
   });
 
   it('lança erro citando a dezena 00 quando falta nas estatísticas', () => {
-    const semZero = lista().slice(1);
+    const semZero = lista().filter((e) => e.dezena !== 0);
 
     expect(() => calcularPesos(semZero, semZero, configuracao(), def)).toThrow(/falta a dezena 0 \(esperado 0\.\.99\)/);
   });
 });
 
-describe('volante 10 × 10 com a dezena 00', () => {
-  it('00 fica na coluna 0, linha 0, quadrante 0', () => {
-    expect(coluna(0, def)).toBe(0);
-    expect(linha(0, def)).toBe(0);
-    expect(quadrante(0, def)).toBe(0);
+describe('volante 10 × 10 com a dezena 00 (01..99, 00 por último, como no bilhete)', () => {
+  it('01 fica na coluna 0, linha 0, quadrante 0', () => {
+    expect(coluna(1, def)).toBe(0);
+    expect(linha(1, def)).toBe(0);
+    expect(quadrante(1, def)).toBe(0);
   });
 
-  it('09 fica no quadrante 1 (superior direito)', () => {
-    expect(coluna(9, def)).toBe(9);
-    expect(linha(9, def)).toBe(0);
-    expect(quadrante(9, def)).toBe(1);
+  it('10 fecha a primeira linha, no quadrante 1 (superior direito)', () => {
+    expect(coluna(10, def)).toBe(9);
+    expect(linha(10, def)).toBe(0);
+    expect(quadrante(10, def)).toBe(1);
   });
 
-  it('99 fica no quadrante 3 (inferior direito)', () => {
-    expect(coluna(99, def)).toBe(9);
+  it('00 é a última casa: coluna 9, linha 9, quadrante 3 (inferior direito)', () => {
+    expect(coluna(0, def)).toBe(9);
+    expect(linha(0, def)).toBe(9);
+    expect(quadrante(0, def)).toBe(3);
+  });
+
+  it('99 fica na linha 9, coluna 8 e no quadrante 3', () => {
     expect(linha(99, def)).toBe(9);
+    expect(coluna(99, def)).toBe(8);
     expect(quadrante(99, def)).toBe(3);
   });
 
-  it('55 fica na linha 5, coluna 5 e no quadrante 3', () => {
+  it('55 fica na linha 5, coluna 4 e no quadrante 2; 50 fecha a linha 4, no quadrante 1', () => {
     expect(linha(55, def)).toBe(5);
-    expect(coluna(55, def)).toBe(5);
-    expect(quadrante(55, def)).toBe(3);
+    expect(coluna(55, def)).toBe(4);
+    expect(quadrante(55, def)).toBe(2);
+    expect(quadrante(50, def)).toBe(1);
   });
 
-  it('90 fica no quadrante 2 (inferior esquerdo) e 44 no quadrante 0', () => {
-    expect(quadrante(90, def)).toBe(2);
-    expect(quadrante(44, def)).toBe(0);
+  it('91 fica no quadrante 2 (inferior esquerdo) e 45 no quadrante 0', () => {
+    expect(quadrante(91, def)).toBe(2);
+    expect(quadrante(45, def)).toBe(0);
   });
 
   it('na Mega-Sena o volante continua começando em 1 (01 → coluna 0, linha 0; 60 → coluna 9, linha 5)', () => {
@@ -231,9 +255,9 @@ describe('filtros na loteria 100/20', () => {
     expect(filtroPares.aceita(quaseSoImpares, contexto())).toBe(false);
   });
 
-  it('quadrantes: aceita jogo com a dezena 00 cobrindo o quadrante 0 e reprova sem ele', () => {
-    expect(filtroQuadrantes.aceita([0, 9, 90, 99], contexto())).toBe(true);
-    expect(filtroQuadrantes.aceita([9, 90, 99, 98], contexto())).toBe(false);
+  it('quadrantes: aceita jogo com a dezena 00 cobrindo o quadrante 3 e reprova sem ele', () => {
+    expect(filtroQuadrantes.aceita([1, 10, 91, 0], contexto())).toBe(true);
+    expect(filtroQuadrantes.aceita([1, 10, 91, 2], contexto())).toBe(false);
   });
 
   it('colunas não é aplicável com 50 dezenas (50 > 10 colunas)', () => {
@@ -245,9 +269,9 @@ describe('filtros na loteria 100/20', () => {
     expect(filtroLinhas.aplicavelA(def, 30)).toBe(true);
   });
 
-  it('linhas usa a linha 0 para a dezena 00', () => {
-    expect(filtroLinhas.aceita([0, 1, 2, 3], contexto())).toBe(false);
-    expect(filtroLinhas.aceita([0, 1, 2, 10], contexto())).toBe(true);
+  it('linhas usa a última linha (91..99, 00) para a dezena 00', () => {
+    expect(filtroLinhas.aceita([0, 91, 92, 93], contexto())).toBe(false);
+    expect(filtroLinhas.aceita([0, 1, 2, 3], contexto())).toBe(true);
   });
 
   it('aplicarFiltros ignora ids fora de regrasDisponiveis (consecutivas, colunas, historico)', () => {
@@ -271,7 +295,7 @@ describe('geração de 50 dezenas em 100 (aposta fixa)', () => {
     expect(def.aposta.max).toBe(50);
   });
 
-  it('gera jogos com 50 dezenas distintas, todas em 0..99, em ordem crescente', () => {
+  it('gera jogos com 50 dezenas distintas, todas em 0..99, na ordem do volante (00 por último)', () => {
     const resultado = gerarJogos(criarHistorico(), configuracao({ quantidadeJogos: 8 }), criarRng(42));
 
     expect(resultado.jogos).toHaveLength(8);
@@ -280,7 +304,7 @@ describe('geração de 50 dezenas em 100 (aposta fixa)', () => {
       expect(jogo.dezenas).toHaveLength(50);
       expect(new Set(jogo.dezenas).size).toBe(50);
       expect(jogo.dezenas.every((d) => Number.isInteger(d) && d >= 0 && d <= 99)).toBe(true);
-      expect(jogo.dezenas).toEqual([...jogo.dezenas].sort((a, b) => a - b));
+      expect(jogo.dezenas).toEqual([...jogo.dezenas].sort(compararDezenas(def)));
     }
   });
 
@@ -327,8 +351,8 @@ describe('geração de 50 dezenas em 100 (aposta fixa)', () => {
 
     expect(jogos).toHaveLength(5);
     for (const jogo of jogos) {
-      expect(jogo.dezenas[0]).toBe(0);
-      expect(jogo.dezenas[49]).toBe(99);
+      expect(jogo.dezenas[48]).toBe(99);
+      expect(jogo.dezenas[49]).toBe(0);
     }
   });
 

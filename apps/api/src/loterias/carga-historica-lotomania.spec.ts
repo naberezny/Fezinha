@@ -182,7 +182,7 @@ describe('carga histórica da Lotomania (2.987 concursos)', () => {
       expect(resposta.body.concursos).toHaveLength(2987);
     });
 
-    it('GET /estatisticas?periodo=tudo tem 100 dezenas (0..99), com a dezena 0 presente', async () => {
+    it('GET /estatisticas?periodo=tudo tem 100 dezenas na ordem do volante (01..99, 00), com a dezena 0 presente', async () => {
       // Act
       const { body } = await http()
         .get('/loterias/lotomania/estatisticas?periodo=tudo')
@@ -192,8 +192,8 @@ describe('carga histórica da Lotomania (2.987 concursos)', () => {
       const dezenas = body.dezenas.map((d: { dezena: number }) => d.dezena);
       expect(body.concursosNoPeriodo).toBe(2987);
       expect(dezenas).toHaveLength(100);
-      expect(dezenas[0]).toBe(0);
-      expect(dezenas[99]).toBe(99);
+      expect(dezenas[0]).toBe(1);
+      expect(dezenas[99]).toBe(0);
       const zero = body.dezenas.find((d: { dezena: number }) => d.dezena === 0);
       const esperado = todosOsConcursos().filter((c) =>
         c.dezenas.includes(0),

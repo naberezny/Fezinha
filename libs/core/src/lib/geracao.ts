@@ -1,7 +1,7 @@
 import { calcularEstatisticas } from './estatisticas';
 import { filtroExiste, obterFiltro } from './filtros';
 import { calcularPesos } from './pesos';
-import { chaveJogo, dezenasDe, dezenaValida, ultimaDezena } from './tipos';
+import { chaveJogo, compararDezenas, dezenasDe, dezenaValida, ultimaDezena } from './tipos';
 import type {
   ConfiguracaoGeracao,
   ContextoFiltro,
@@ -66,13 +66,14 @@ function resolverFiltros(historico: Historico, config: ConfiguracaoGeracao): Fil
     .filter((filtro) => filtro.aplicavelA(historico.loteria, config.dezenasPorJogo));
 }
 
-/** Sorteio por roleta, sem reposição, a partir das fixas. Devolve as dezenas em ordem crescente. */
+/** Sorteio por roleta, sem reposição, a partir das fixas. Devolve as dezenas na ordem do volante (`comparar`). */
 function sortearDezenas(
   candidatas: number[],
   pesos: Map<number, number>,
   fixas: number[],
   dezenasPorJogo: number,
   rng: Rng,
+  comparar: (a: number, b: number) => number,
 ): number[] {
   const escolhidas = [...fixas];
   const restantes = candidatas.filter((dezena) => !fixas.includes(dezena));
@@ -92,7 +93,7 @@ function sortearDezenas(
     escolhidas.push(restantes[posicao]);
     restantes.splice(posicao, 1);
   }
-  return escolhidas.sort((a, b) => a - b);
+  return escolhidas.sort(comparar);
 }
 
 /** Gera jogos ponderados e filtrados. Determinístico para o mesmo `rng`. */
@@ -116,13 +117,14 @@ export function gerarJogos(historico: Historico, config: ConfiguracaoGeracao, rn
   const maximoTentativas = combinacaoUnica ? 1 : MAXIMO_TENTATIVAS;
 
   const candidatas = dezenasDe(def);
+  const comparar = compararDezenas(def);
   const jogos: Jogo[] = [];
   const geradas = new Set<string>();
   let tentativas = 0;
 
   while (jogos.length < config.quantidadeJogos && tentativas < maximoTentativas) {
     tentativas++;
-    const dezenas = sortearDezenas(candidatas, pesos, config.fixas, config.dezenasPorJogo, rng);
+    const dezenas = sortearDezenas(candidatas, pesos, config.fixas, config.dezenasPorJogo, rng, comparar);
     const chave = chaveJogo(dezenas);
     if (geradas.has(chave)) continue;
     if (!filtros.every((filtro) => filtro.aceita(dezenas, contexto))) continue;

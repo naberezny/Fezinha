@@ -47,12 +47,14 @@ describe('volante: geometria com primeira dezena 0 e 1', () => {
     expect(quadrante(60, LOTERIA_TESTE)).toBe(3);
   });
 
-  it('Lotomania (00..99): 00 → coluna 0, linha 0, quadrante 0; 99 → quadrante 3', () => {
-    expect(coluna(0, LOTERIA_TESTE_100)).toBe(0);
-    expect(linha(0, LOTERIA_TESTE_100)).toBe(0);
-    expect(quadrante(0, LOTERIA_TESTE_100)).toBe(0);
-    expect(quadrante(9, LOTERIA_TESTE_100)).toBe(1);
-    expect(quadrante(90, LOTERIA_TESTE_100)).toBe(2);
-    expect(quadrante(99, LOTERIA_TESTE_100)).toBe(3);
+  it('Lotomania (01..99, 00 por último, como no bilhete): 01 → coluna 0, linha 0; 00 → coluna 9, linha 9', () => {
+    expect(coluna(1, LOTERIA_TESTE_100)).toBe(0);
+    expect(linha(1, LOTERIA_TESTE_100)).toBe(0);
+    expect(quadrante(1, LOTERIA_TESTE_100)).toBe(0);
+    expect(quadrante(10, LOTERIA_TESTE_100)).toBe(1);
+    expect(quadrante(91, LOTERIA_TESTE_100)).toBe(2);
+    expect(coluna(0, LOTERIA_TESTE_100)).toBe(9);
+    expect(linha(0, LOTERIA_TESTE_100)).toBe(9);
+    expect(quadrante(0, LOTERIA_TESTE_100)).toBe(3);
   });
 });

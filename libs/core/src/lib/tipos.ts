@@ -21,7 +21,10 @@ export interface LoteriaDefinicao {
   cor: string;
   /** Quantidade de dezenas do jogo. As dezenas válidas vão de `primeiraDezena` a `primeiraDezena + universo - 1`. */
   universo: number;
-  /** Menor dezena do volante: 1 (Mega-Sena, 01..60) ou 0 (Lotomania, 00..99). */
+  /**
+   * Menor dezena válida: 1 (Mega-Sena, 01..60) ou 0 (Lotomania, 00..99). Quando é 0, o 00 ocupa a última
+   * casa do volante (01..99, 00), como no bilhete da Caixa: ver `ordemNoVolante`.
+   */
   primeiraDezena: 0 | 1;
   /** Quantidade de dezenas sorteadas por concurso. */
   sorteadas: number;
@@ -56,7 +59,7 @@ export interface Concurso {
   numero: number;
   /** ISO yyyy-mm-dd. */
   data: string;
-  /** Dezenas em ordem crescente. */
+  /** Dezenas na ordem do volante (`compararDezenas`): crescente, mas o 00 da Lotomania vem por último. */
   dezenas: number[];
   acumulou: boolean;
   premiacoes: Premiacao[];
@@ -168,9 +171,27 @@ export function ultimaDezena(def: LoteriaDefinicao): number {
   return def.primeiraDezena + def.universo - 1;
 }
 
-/** Todas as dezenas válidas, em ordem crescente. Use isto em vez de laços `1..universo`. */
+/**
+ * Posição (1..universo) da dezena no volante. Na Lotomania o 00 é a última casa (100ª), depois do 99,
+ * como no bilhete da Caixa; nas demais loterias a posição é a própria dezena.
+ */
+export function ordemNoVolante(dezena: number, def: LoteriaDefinicao): number {
+  return def.primeiraDezena === 0 && dezena === 0 ? def.universo : dezena;
+}
+
+/** Dezena que ocupa a posição `ordem` (1..universo) do volante. Inverso de `ordemNoVolante`. */
+export function dezenaNaOrdem(ordem: number, def: LoteriaDefinicao): number {
+  return def.primeiraDezena === 0 && ordem === def.universo ? 0 : ordem;
+}
+
+/** Comparador na ordem do volante (01..99, 00 na Lotomania). Use em vez de `(a, b) => a - b` ao exibir dezenas. */
+export function compararDezenas(def: LoteriaDefinicao): (a: number, b: number) => number {
+  return (a, b) => ordemNoVolante(a, def) - ordemNoVolante(b, def);
+}
+
+/** Todas as dezenas válidas, na ordem do volante (01..60; 01..99, 00). Use isto em vez de laços `1..universo`. */
 export function dezenasDe(def: LoteriaDefinicao): number[] {
-  return Array.from({ length: def.universo }, (_, i) => def.primeiraDezena + i);
+  return Array.from({ length: def.universo }, (_, i) => dezenaNaOrdem(i + 1, def));
 }
 
 /** Verdadeiro se `n` é uma dezena válida da loteria (inteiro dentro do intervalo). */

@@ -1,8 +1,8 @@
-import type { LoteriaDefinicao } from './tipos';
+import { ordemNoVolante, type LoteriaDefinicao } from './tipos';
 
-/** Posição (0-based) da dezena na sequência do volante: 0 para a primeira dezena. */
+/** Posição (0-based) da dezena na sequência do volante: 0 para a primeira casa (01; o 00 da Lotomania é a última). */
 function posicao(dezena: number, def: LoteriaDefinicao): number {
-  return dezena - def.primeiraDezena;
+  return ordemNoVolante(dezena, def) - 1;
 }
 
 /** Coluna (0-based) da dezena no volante. */

@@ -26,7 +26,7 @@ function emCache(numeros: number[], etag = '"cache"'): HistoricoEmCache {
     loteriaId: 'megasena',
     etag,
     atualizadoEm: '2026-10-01T10:00:00.000Z',
-    concursos: numeros.map(concurso),
+    concursos: numeros.map((n) => concurso(n)),
   };
 }
 
@@ -279,7 +279,8 @@ describe('HistoricoStoreImpl', () => {
       expect(store.loteria().id).toBe('lotomania');
       expect(store.historico()?.loteria.id).toBe('lotomania');
       expect(store.historico()?.concursos.map((c) => c.numero)).toEqual([2900, 2901]);
-      expect(store.ultimo()?.dezenas[0]).toBe(0);
+      // as dezenas seguem o volante da Lotomania: o 00 vem depois do 99
+      expect(store.ultimo()?.dezenas.at(-1)).toBe(0);
       expect(cache.lerHistorico).toHaveBeenCalledWith('lotomania');
       expect(api.historico).toHaveBeenLastCalledWith('lotomania', undefined);
       expect(cache.gravarHistorico).toHaveBeenLastCalledWith('lotomania', '"lotomania"', expect.any(String), expect.any(Array));

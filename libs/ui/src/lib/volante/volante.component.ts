@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, model } from '@angular/core';
-import { dezenasDe, formatarDezena, quadrante, type LoteriaDefinicao } from '@sorteios/core';
+import { compararDezenas, dezenasDe, formatarDezena, quadrante, type LoteriaDefinicao } from '@sorteios/core';
 
 /** Volante da loteria: grade colunas × linhas de dezenas marcáveis, com divisórias dos quadrantes. */
 @Component({
@@ -80,10 +80,10 @@ export class VolanteComponent {
   readonly definicao = input.required<LoteriaDefinicao>();
   /** Máximo de dezenas marcadas; cliques em dezenas livres são ignorados ao atingi-lo. */
   readonly limite = input.required<number>();
-  /** Dezenas marcadas, em ordem crescente. */
+  /** Dezenas marcadas, na ordem do volante (o 00 da Lotomania por último). */
   readonly selecionadas = model<number[]>([]);
 
-  /** Dezenas da grade, na ordem do volante: `primeiraDezena..` (01..60 na Mega-Sena, 00..99 na Lotomania). */
+  /** Dezenas da grade, na ordem do volante: 01..60 na Mega-Sena; 01..99 e 00 por último na Lotomania. */
   protected readonly dezenas = computed(() => dezenasDe(this.definicao()));
   protected readonly marcadas = computed(() => new Set(this.selecionadas()));
   protected readonly colunasCss = computed(() => `repeat(${this.definicao().volante.colunas}, minmax(0, 1fr))`);
@@ -101,7 +101,7 @@ export class VolanteComponent {
     if (atuais.includes(dezena)) {
       this.selecionadas.set(atuais.filter((d) => d !== dezena));
     } else if (atuais.length < this.limite()) {
-      this.selecionadas.set([...atuais, dezena].sort((a, b) => a - b));
+      this.selecionadas.set([...atuais, dezena].sort(compararDezenas(this.definicao())));
     }
   }
 }

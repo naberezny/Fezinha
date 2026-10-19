@@ -3,10 +3,12 @@ import { IonContent } from '@ionic/angular';
 import {
   atrasoEsperado,
   calcularEstatisticas,
+  dezenaNaOrdem,
   distribuicaoPares,
   distribuicaoSoma,
   formatarDezena,
   frequenciaPorMes,
+  ordemNoVolante,
   recortarPeriodo,
 } from '@sorteios/core';
 import type { EstatisticaDezena, Periodo } from '@sorteios/core';
@@ -258,16 +260,16 @@ export class EstatisticasPage implements OnInit {
     const dados = historico ? frequenciaPorMes(historico, MESES_MAPA_CALOR) : [];
     const meses = [...new Set(dados.map((d) => d.anoMes))];
     const linhas: LinhaMapaCalor[] = meses.map((anoMes) => ({ chave: anoMes, rotulo: anoMes.slice(2).replace('-', '/') }));
-    // As colunas do mapa são numeradas de 1: a dezena 00 da Lotomania é a coluna 1, a 01 da Mega-Sena também.
-    const primeira = this._store.loteria().primeiraDezena;
-    const valores = new Map<string, number>(dados.map((d) => [`${d.anoMes}|${d.dezena - primeira + 1}`, d.total]));
+    // As colunas do mapa seguem o volante, numeradas de 1: a 01 é a coluna 1 e o 00 da Lotomania é a última (100).
+    const def = this._store.loteria();
+    const valores = new Map<string, number>(dados.map((d) => [`${d.anoMes}|${ordemNoVolante(d.dezena, def)}`, d.total]));
     return { linhas, valores };
   });
 
-  /** Cabeçalho de cada coluna do mapa de calor: a dezena que ela representa ("00".."99" ou "01".."60"). */
+  /** Cabeçalho de cada coluna do mapa de calor: a dezena que ela representa ("01".."60" ou "01".."99", "00"). */
   protected readonly rotuloColunaMapa = computed(() => {
-    const primeira = this._store.loteria().primeiraDezena;
-    return (coluna: number) => formatarDezena(primeira + coluna - 1);
+    const def = this._store.loteria();
+    return (coluna: number) => formatarDezena(dezenaNaOrdem(coluna, def));
   });
 
   /** Com muitas dezenas (Lotomania), o mapa mantém células legíveis e rola na horizontal em telas estreitas. */
