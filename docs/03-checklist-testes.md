@@ -72,6 +72,7 @@ Comandos rodam na raiz `C:\Users\joao.naberezny\repositorios\Sorteios`.
 - [x] G1 `gerarJogos`: quando `fixas.length === dezenasPorJogo`, só existe um jogo possível; sair cedo (`incompleto=true` após o 1º jogo) em vez de gastar 20.000 tentativas.
 - [x] G2 `gerarJogos`: id de regra desconhecido em `config.regras` deve dar erro de validação claro (hoje vem de `obterFiltro`).
 - [ ] G3 Mapeador da Caixa: capturar um concurso com ganhador da Sena para confirmar o formato de `listaMunicipioUFGanhadores` (fixture real).
+  Parcial (19/10/2026): o formato foi confirmado com o concurso 3807 real da **Lotofácil** (3 locais, inclusive `CANAL ELETRONICO` com `uf: "--"`), que passa pelo mesmo mapeador genérico (`libs/loterias/comum`). Falta só um fixture da Mega-Sena com ganhador.
 - [x] G4 Comandos de teste: usar Jest direto (`pnpm exec jest -c <lib>/jest.config.cts --rootDir <lib>`), `--testPathPatterns` (Jest 30); `nx test` trava no grafo com a máquina carregada.
 - [x] G5 `libs/ui/graficos/estilos.ts` (`ESTILOS_SVG` compartilhado): confirmar que compila no build AOT do app (só validado no Jest).
 - [x] G6 Mapa de calor: `data-v` limitado a 4 ("4 ou mais"); legenda do app deve dizer "4+".
@@ -118,3 +119,16 @@ Comandos rodam na raiz `C:\Users\joao.naberezny\repositorios\Sorteios`.
 - [ ] I6 Tela inicial: só o cartão da loteria ativa mostra o último concurso (store carrega um histórico por vez); mostrar o resumo de todas exige um endpoint leve de resumo ou carregar os históricos em segundo plano.
 - [x] I7 Artefato atualizado com o app real (build `artefato`: URLs relativas, rotas por hash, sem service worker, dados JSON embutidos: Mega-Sena 3070 e Lotomania 2988). Testado localmente como pasta estática; versão 8 do artefato.
 - [x] I8 Jogos gerados no celular: bolas em várias por linha (6 de 34 px em 390 px; Lotomania 9 linhas de 6) e resumo abaixo das bolas; corrigido em `libs/ui/jogo` (bolas sem encolher, grade de 2 colunas até 640 px). Artefato versão 9.
+
+## J. PostgreSQL e Lotofácil (2026-10-19)
+
+- [x] J1 Banco da API migrado de SQLite para PostgreSQL 17 (`docker-compose.yml`, `docker compose up -d postgres`): provider `postgresql`, migration inicial regerada, `@prisma/adapter-pg` + `pg` no lugar de `better-sqlite3`.
+- [x] J2 Testes da API no Postgres: cada suíte cria e derruba um database `teste_<uuid>`; nenhum database órfão depois da suíte. 181 testes verdes (14 suítes, ~1 min).
+- [x] J3 Cargas no Postgres idempotentes: Mega-Sena 3070, Lotomania 2987, Lotofácil 3807.
+- [x] J4 Planilha oficial `Lotofacil.xlsx` baixada da Caixa (3.807 concursos, 1 a 3807); fixture `tools/fixtures/lotofacil-3807.json`; o concurso 3807 da planilha é idêntico ao da API da Caixa.
+- [x] J5 `libs/loterias/lotofacil`: definição (25/15, aposta 15..20, volante 5 × 5, 5 faixas, cor `#930089`), registro e mapeador com fixtures reais (`caixa-lotofacil-3807.json`, `caixa-lotofacil-ultimo.json`); 10 testes.
+- [x] J6 API: `GET /loterias` lista a Lotofácil; carga histórica completa e sincronização (`POST /loterias/lotofacil/sincronizar`, com e sem `de`/`ate`) cobertas por testes.
+- [x] J7 App sem alteração de tela: cartão roxo ativo na tela inicial, gerar (15 a 20 dezenas, chance 1 em 3.268.760), resultados (3.807 concursos) e estatísticas (25 dezenas). Prints em `docs/capturas/v3-lotofacil-*.jpg`.
+- [x] J8 Defeito achado na Lotofácil e corrigido: atraso esperado fracionário (25/15) aparecia cru (`1.6666666666666667`); agora "1,7" (`formatarAtraso` no core) e atraso mínimo padrão 2.
+- [x] J9 Corrigido também o teste de `libs/loterias/comum`, que não compilava desde a criação do campo `cor` (6 testes voltaram a rodar).
+- Gate desta rodada (Jest direto): api 181, app 291, core 170, ui 90, mega-sena 45, lotomania 16, lotofacil 10, comum 6, contratos 5 = 814; lint sem erros; build de api e app ok.

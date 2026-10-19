@@ -1,12 +1,17 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateTable
 CREATE TABLE "Loteria" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "nome" TEXT NOT NULL
+    "id" TEXT NOT NULL,
+    "nome" TEXT NOT NULL,
+
+    CONSTRAINT "Loteria_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Concurso" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "id" SERIAL NOT NULL,
     "loteriaId" TEXT NOT NULL,
     "numero" INTEGER NOT NULL,
     "dataSorteio" TEXT NOT NULL,
@@ -20,7 +25,8 @@ CREATE TABLE "Concurso" (
     "observacao" TEXT,
     "origem" TEXT NOT NULL,
     "atualizadoEm" TEXT NOT NULL,
-    CONSTRAINT "Concurso_loteriaId_fkey" FOREIGN KEY ("loteriaId") REFERENCES "Loteria" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+
+    CONSTRAINT "Concurso_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -29,8 +35,7 @@ CREATE TABLE "Dezena" (
     "ordem" INTEGER NOT NULL,
     "dezena" INTEGER NOT NULL,
 
-    PRIMARY KEY ("concursoId", "ordem"),
-    CONSTRAINT "Dezena_concursoId_fkey" FOREIGN KEY ("concursoId") REFERENCES "Concurso" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "Dezena_pkey" PRIMARY KEY ("concursoId","ordem")
 );
 
 -- CreateTable
@@ -41,30 +46,31 @@ CREATE TABLE "Premiacao" (
     "ganhadores" INTEGER NOT NULL,
     "rateioCentavos" BIGINT NOT NULL,
 
-    PRIMARY KEY ("concursoId", "faixa"),
-    CONSTRAINT "Premiacao_concursoId_fkey" FOREIGN KEY ("concursoId") REFERENCES "Concurso" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "Premiacao_pkey" PRIMARY KEY ("concursoId","faixa")
 );
 
 -- CreateTable
 CREATE TABLE "LocalGanhador" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "id" SERIAL NOT NULL,
     "concursoId" INTEGER NOT NULL,
     "cidade" TEXT,
     "uf" TEXT,
     "descricao" TEXT NOT NULL,
     "quantidade" INTEGER NOT NULL DEFAULT 1,
-    CONSTRAINT "LocalGanhador_concursoId_fkey" FOREIGN KEY ("concursoId") REFERENCES "Concurso" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+
+    CONSTRAINT "LocalGanhador_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Sincronizacao" (
-    "loteriaId" TEXT NOT NULL PRIMARY KEY,
+    "loteriaId" TEXT NOT NULL,
     "ultimaEm" TEXT,
     "ultimoConcurso" INTEGER,
     "proximoSorteioEm" TEXT,
     "ultimoErro" TEXT,
     "emAndamento" BOOLEAN NOT NULL DEFAULT false,
-    CONSTRAINT "Sincronizacao_loteriaId_fkey" FOREIGN KEY ("loteriaId") REFERENCES "Loteria" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+
+    CONSTRAINT "Sincronizacao_pkey" PRIMARY KEY ("loteriaId")
 );
 
 -- CreateIndex
@@ -78,3 +84,19 @@ CREATE INDEX "Dezena_dezena_idx" ON "Dezena"("dezena");
 
 -- CreateIndex
 CREATE INDEX "LocalGanhador_concursoId_idx" ON "LocalGanhador"("concursoId");
+
+-- AddForeignKey
+ALTER TABLE "Concurso" ADD CONSTRAINT "Concurso_loteriaId_fkey" FOREIGN KEY ("loteriaId") REFERENCES "Loteria"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Dezena" ADD CONSTRAINT "Dezena_concursoId_fkey" FOREIGN KEY ("concursoId") REFERENCES "Concurso"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Premiacao" ADD CONSTRAINT "Premiacao_concursoId_fkey" FOREIGN KEY ("concursoId") REFERENCES "Concurso"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LocalGanhador" ADD CONSTRAINT "LocalGanhador_concursoId_fkey" FOREIGN KEY ("concursoId") REFERENCES "Concurso"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Sincronizacao" ADD CONSTRAINT "Sincronizacao_loteriaId_fkey" FOREIGN KEY ("loteriaId") REFERENCES "Loteria"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+

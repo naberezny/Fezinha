@@ -122,8 +122,8 @@ export class ConcursosRepositorio {
 
   /**
    * Todos os concursos em ordem crescente de número.
-   * Quatro consultas planas (sem `include`): o `include` com milhares de ids estoura o limite de
-   * parâmetros do SQLite (P2029). Os filhos são agrupados em memória.
+   * Quatro consultas planas (sem `include`): o `include` com milhares de ids gera um `IN (...)` gigante
+   * (no SQLite estourava o limite de parâmetros, P2029). Os filhos são agrupados em memória.
    */
   async historico(loteriaId: string): Promise<Concurso[]> {
     const filtro = { concurso: { loteriaId } };

@@ -103,7 +103,7 @@ describe('Sincronização da Lotomania com a Caixa', () => {
   beforeEach(async () => {
     process.env['CAIXA_API_URL'] = urlCaixaSimulada();
     process.env['CHAVE_ADMIN'] = CHAVE;
-    banco = criarBancoTemporario();
+    banco = await criarBancoTemporario();
     app = await criarAppDeTeste(banco.url, {
       marcarSincronizada: false,
       substituir: [
@@ -125,7 +125,7 @@ describe('Sincronização da Lotomania com a Caixa', () => {
     delete process.env['CAIXA_API_URL'];
     delete process.env['CHAVE_ADMIN'];
     await app?.close();
-    banco?.remover();
+    await banco?.remover();
   });
 
   it('POST /sincronizar com o banco vazio grava só o último concurso e a dezena 00 volta do banco', async () => {

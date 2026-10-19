@@ -6,6 +6,7 @@ import {
   dezenaNaOrdem,
   distribuicaoPares,
   distribuicaoSoma,
+  formatarAtraso,
   formatarDezena,
   frequenciaPorMes,
   ordemNoVolante,
@@ -169,6 +170,7 @@ export class EstatisticasPage implements OnInit {
   });
 
   protected readonly atrasoEsperadoConcursos = computed(() => atrasoEsperado(this._store.loteria()));
+  protected readonly atrasoEsperadoTexto = computed(() => formatarAtraso(this.atrasoEsperadoConcursos()));
 
   protected readonly kpis = computed<KpiEstatistica[]>(() => {
     const estatisticas = this._estatisticas();

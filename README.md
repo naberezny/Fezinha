@@ -119,7 +119,7 @@ O upsert é idempotente: registros idênticos não são regravados; registros di
 
 ## Planejamento do webapp (2026-10-16)
 
-- `docs/01-especificacao.md`: decisoes tecnicas (Angular + Ionic, NestJS, Prisma/SQLite, Capacitor), dominio, API, telas do prototipo aprovado.
+- `docs/01-especificacao.md`: decisoes tecnicas (Angular + Ionic, NestJS, Prisma/PostgreSQL — SQLite até 19/10/2026, Capacitor), dominio, API, telas do prototipo aprovado.
 - `docs/02-plano-execucao.md`: plano mestre por fases (0 a 7), gates e riscos.
 - `docs/prototipo-aprovado-v7.html`: copia do prototipo visual aprovado.
 
@@ -138,8 +138,9 @@ Workspace Nx + pnpm criado na raiz desta pasta (Fase 0 do webapp "Sorteios"; ver
 | Angular | 22.1.8 (CLI/build 22.1.9), zoneless |
 | Ionic (`@ionic/angular`) | 9.0.8 (ionicons 8.1.0) |
 | NestJS | 11.2.7 (`@nestjs/swagger` 11.4.7, `config` 4.0.4, `throttler` 6.7.1) |
-| Prisma (`prisma`, `@prisma/client`, `@prisma/adapter-better-sqlite3`) | 7.10.1 (estável; `latest` do npm é RC) |
-| better-sqlite3 | 12.11.1 |
+| Prisma (`prisma`, `@prisma/client`, `@prisma/adapter-pg`) | 7.10.1 (estável; `latest` do npm é RC) |
+| pg (driver PostgreSQL) | 8.23.1 |
+| PostgreSQL (imagem Docker `postgres:17-alpine`) | 17 |
 | Jest | 30.5.2 |
 | Playwright | 1.64.1 |
 
@@ -156,8 +157,11 @@ libs/
   contratos/             @sorteios/contratos             (scope:contratos)
   ui/                    @sorteios/ui                    (scope:ui, Angular)
   loterias/mega-sena/    @sorteios/loterias/mega-sena    (scope:loteria)
+  loterias/lotomania/    @sorteios/loterias/lotomania    (scope:loteria)
+  loterias/lotofacil/    @sorteios/loterias/lotofacil    (scope:loteria)
+  loterias/comum/        @sorteios/loterias/comum        (scope:loteria; mapeador genérico da Caixa)
 tools/
-  fixtures/              gerar.mjs + megasena-3070.json (histórico congelado)
+  fixtures/              gerar.mjs + megasena-3070.json, lotomania-2987.json, lotofacil-3807.json (históricos congelados)
   carga-historica/       (vazio; Fase 2)
 ```
 
@@ -173,17 +177,18 @@ Fronteiras de dependência (`@nx/enforce-module-boundaries` em `eslint.config.mj
 | `build` | `nx run-many -t build` |
 | `fixtures:gerar` | regera `tools/fixtures/megasena-3070.json` a partir de `megasena.db` |
 
-Observações: o `package.json` autoriza scripts de instalação (`pnpm.onlyBuiltDependencies`) para `better-sqlite3`, `esbuild`, Prisma e binários nativos do Nx. Prisma schema e `prisma.config.ts` ficam para a Fase 2.
+Observações: o `package.json` autoriza scripts de instalação (`pnpm.onlyBuiltDependencies`) para `esbuild`, Prisma e binários nativos do Nx.
 
 ### Como rodar o webapp
 
 1. `pnpm install` (uma vez; roda `prisma generate`).
-2. `pnpm prisma:migrar` e depois `pnpm carga:megasena` (carrega os 3.070 concursos do fixture; idempotente).
-3. Copie `.env.exemplo` para `.env` e defina `CHAVE_ADMIN` (protege o `POST /loterias/megasena/sincronizar`).
-4. `pnpm dev` sobe a API em http://localhost:3000 (Swagger em `/docs`) e o app em http://localhost:4200 (proxy para a API).
+2. `docker compose up -d postgres` sobe o PostgreSQL 17 local (`docker-compose.yml`; dados no volume `sorteios-postgres`).
+3. `pnpm prisma:migrar` e depois `pnpm carga:megasena`, `pnpm carga:lotomania` e `pnpm carga:lotofacil` (fixtures de 3.070, 2.987 e 3.807 concursos; idempotentes).
+4. Copie `.env.exemplo` para `.env` e defina `CHAVE_ADMIN` (protege o `POST /loterias/:id/sincronizar`).
+5. `pnpm dev` sobe a API em http://localhost:3000 (Swagger em `/docs`) e o app em http://localhost:4200 (proxy para a API).
    - API sozinha, sem webpack: `node tools/carga-historica/executar-ts.cjs apps/api/src/main.ts`.
-5. Atualizar resultados: a primeira consulta do dia sincroniza com a Caixa; manual: `POST /loterias/megasena/sincronizar` com header `X-Chave-Admin`.
-6. Build de produção do app (PWA com service worker): `pnpm nx build app --configuration=production` → `dist/apps/app/browser`.
+6. Atualizar resultados: a primeira consulta do dia sincroniza com a Caixa; manual: `POST /loterias/:id/sincronizar` com header `X-Chave-Admin`.
+7. Build de produção do app (PWA com service worker): `pnpm nx build app --configuration=production` → `dist/apps/app/browser`.
 
 Checklist de aceite e capturas: `docs/03-checklist-testes.md`, `docs/capturas/`. Nesta máquina, prefira Jest direto a `nx test` (ver G4 da checklist).
 

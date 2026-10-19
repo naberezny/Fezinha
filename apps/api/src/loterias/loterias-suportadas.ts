@@ -4,6 +4,10 @@ import {
   LOTOMANIA,
   registrarLotomania,
 } from '@sorteios/loterias/lotomania/definicao';
+import {
+  LOTOFACIL,
+  registrarLotofacil,
+} from '@sorteios/loterias/lotofacil/definicao';
 
 /** Loteria que a API sabe servir: definição + registro no registro central do core. */
 export interface LoteriaSuportada {
@@ -15,6 +19,7 @@ export interface LoteriaSuportada {
 export const LOTERIAS_SUPORTADAS: readonly LoteriaSuportada[] = [
   { def: MEGA_SENA, registrar: registrarMegaSena },
   { def: LOTOMANIA, registrar: registrarLotomania },
+  { def: LOTOFACIL, registrar: registrarLotofacil },
 ];
 
 /** Registra todas as loterias suportadas (idempotente). */

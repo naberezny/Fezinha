@@ -1,4 +1,3 @@
-import { isAbsolute, resolve } from 'node:path';
 import { defineConfig } from 'prisma/config';
 
 // O Prisma 7 não lê .env sozinho: carrega o da raiz, se existir.
@@ -8,17 +7,13 @@ try {
   // sem .env: usa o padrão abaixo
 }
 
-/** `file:./x.db` relativo à raiz do workspace (cwd) vira caminho absoluto. */
-function resolverUrl(url: string): string {
-  if (!url.startsWith('file:')) return url;
-  const caminho = url.slice('file:'.length);
-  return `file:${isAbsolute(caminho) ? caminho : resolve(process.cwd(), caminho)}`;
-}
-
 export default defineConfig({
   schema: 'apps/api/prisma/schema.prisma',
   migrations: { path: 'apps/api/prisma/migrations' },
   datasource: {
-    url: resolverUrl(process.env['DATABASE_URL'] ?? 'file:./apps/api/dados/sorteios.db'),
+    // Mesmo padrão de apps/api/src/prisma/url-banco.ts: o PostgreSQL do docker-compose.yml.
+    url:
+      process.env['DATABASE_URL'] ??
+      'postgresql://sorteios:sorteios@localhost:5432/sorteios',
   },
 });

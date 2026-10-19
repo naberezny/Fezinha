@@ -18,7 +18,7 @@ const todosOsConcursos = () => concursosDoFixture(undefined, LOTOMANIA);
 
 /**
  * Carga completa dos 2.987 concursos do fixture da Lotomania (a mesma que `pnpm carga:lotomania`),
- * com a dezena 00 indo e voltando do SQLite, e as rotas HTTP sobre a base completa.
+ * com a dezena 00 indo e voltando do banco, e as rotas HTTP sobre a base completa.
  * Lenta por natureza: uma carga e uma repetição, no mesmo banco temporário.
  */
 describe('carga histórica da Lotomania (2.987 concursos)', () => {
@@ -31,7 +31,7 @@ describe('carga histórica da Lotomania (2.987 concursos)', () => {
   const http = () => request(app.getHttpServer());
 
   beforeAll(async () => {
-    banco = criarBancoTemporario();
+    banco = await criarBancoTemporario();
     app = await criarAppDeTeste(banco.url);
     prisma = app.get(PrismaService);
     primeiraCarga = await carregarFixtureNoBanco(app, undefined, LOTOMANIA);
@@ -39,7 +39,7 @@ describe('carga histórica da Lotomania (2.987 concursos)', () => {
 
   afterAll(async () => {
     await app.close();
-    banco.remover();
+    await banco.remover();
   });
 
   it('grava 2987 concursos novos, 59.740 dezenas e 7 premiações por concurso', async () => {
@@ -62,7 +62,7 @@ describe('carga histórica da Lotomania (2.987 concursos)', () => {
     expect(await prisma.premiacao.count({ where })).toBe(2987 * 7);
   });
 
-  it('a dezena 0 vai e volta do SQLite (existe no banco e no histórico lido)', async () => {
+  it('a dezena 0 vai e volta do banco (existe no banco e no histórico lido)', async () => {
     // Act
     const noBanco = await prisma.dezena.count({
       where: { dezena: 0, concurso: { loteriaId: 'lotomania' } },
@@ -112,7 +112,7 @@ describe('carga histórica da Lotomania (2.987 concursos)', () => {
   });
 
   describe('HTTP sobre a base completa', () => {
-    it('GET /loterias lista as duas loterias com primeiraDezena', async () => {
+    it('GET /loterias lista as loterias com primeiraDezena', async () => {
       // Act
       const { body } = await http().get('/loterias').expect(200);
 
@@ -125,6 +125,7 @@ describe('carga histórica da Lotomania (2.987 concursos)', () => {
       ).toEqual([
         ['megasena', 1],
         ['lotomania', 0],
+        ['lotofacil', 1],
       ]);
     });
 

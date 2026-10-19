@@ -6,6 +6,7 @@ import {
   compararDezenas,
   dezenaValida,
   filtrosPadrao,
+  formatarAtraso,
   formatarDezena,
   gerarJogos,
   rngPadrao,
@@ -161,7 +162,8 @@ export class GerarEstado {
   private readonly _fixas = linkedSignal<string, number[]>({ source: this.idLoteria, computation: () => [] });
   private readonly _atrasoMinimo = linkedSignal<string, number>({
     source: this.idLoteria,
-    computation: () => untracked(() => atrasoEsperado(this.loteria())),
+    // Inteiro, como o valor digitado (`definirAtrasoMinimo` arredonda): Lotofácil 25/15 = 1,67 → 2.
+    computation: () => untracked(() => Math.round(atrasoEsperado(this.loteria()))),
   });
   private readonly _intensidade = signal(2);
   private readonly _janelaFrequencia = signal<JanelaFrequencia>('50');
@@ -212,6 +214,8 @@ export class GerarEstado {
   // ---------- Derivados da loteria e do histórico ----------
   /** Atraso esperado por dezena (Mega-Sena: 10; Lotomania: 5). */
   readonly atrasoReferencia = computed(() => atrasoEsperado(this.loteria()));
+  /** `atrasoReferencia` para exibição ("10", "5", "1,7"). */
+  readonly atrasoReferenciaTexto = computed(() => formatarAtraso(this.atrasoReferencia()));
 
   /** Atraso atual de cada dezena (inclusive a 00 da Lotomania) no histórico inteiro; vazio enquanto não há histórico. */
   readonly atrasos = computed<Record<number, number>>(() => {

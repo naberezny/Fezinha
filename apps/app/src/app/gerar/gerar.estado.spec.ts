@@ -529,6 +529,29 @@ describe('GerarEstado', () => {
     });
   });
 
+  describe('com atraso esperado fracionário (25/15, como a Lotofácil)', () => {
+    const LOTERIA_25: LoteriaDefinicao = {
+      ...MEGA_SENA,
+      id: 'teste25',
+      universo: 25,
+      sorteadas: 15,
+      aposta: { min: 15, max: 20 },
+      volante: { colunas: 5, linhas: 5 },
+    };
+
+    beforeEach(() => {
+      store.loterias.set([MEGA_SENA, LOTERIA_25]);
+      store.loteria.set(LOTERIA_25);
+    });
+
+    it('mantém a referência exata, exibe "1,7" e começa o atraso mínimo no inteiro mais próximo (2)', () => {
+      // Arrange / Act / Assert
+      expect(estado.atrasoReferencia()).toBeCloseTo(25 / 15);
+      expect(estado.atrasoReferenciaTexto()).toBe('1,7');
+      expect(estado.atrasoMinimo()).toBe(2);
+    });
+  });
+
   describe('com a definição da Lotomania (fake 100/20/50)', () => {
     beforeEach(() => {
       store.loterias.set([MEGA_SENA, LOTOMANIA_FALSA]);

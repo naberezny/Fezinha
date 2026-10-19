@@ -55,7 +55,7 @@ describe('Sincronização com a Caixa', () => {
       marcarSincronizada?: boolean;
     } = {},
   ) {
-    banco = criarBancoTemporario();
+    banco = await criarBancoTemporario();
     app = await criarAppDeTeste(banco.url, {
       marcarSincronizada: opcoes.marcarSincronizada ?? false,
       substituir: [
@@ -91,7 +91,7 @@ describe('Sincronização com a Caixa', () => {
     delete process.env['CAIXA_API_URL'];
     delete process.env['CHAVE_ADMIN'];
     await app?.close();
-    banco?.remover();
+    await banco?.remover();
   });
 
   describe('regra de "vencida" (seção 5.3, passos 1 e 2)', () => {

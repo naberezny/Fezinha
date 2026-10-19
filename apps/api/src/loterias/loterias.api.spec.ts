@@ -15,18 +15,18 @@ describe('API de loterias (HTTP)', () => {
   const http = () => request(app.getHttpServer());
 
   beforeAll(async () => {
-    banco = criarBancoTemporario();
+    banco = await criarBancoTemporario();
     app = await criarAppDeTeste(banco.url);
     await carregarFixtureNoBanco(app, 100);
   });
 
   afterAll(async () => {
     await app.close();
-    banco.remover();
+    await banco.remover();
   });
 
   describe('GET /loterias', () => {
-    it('lista a Mega-Sena e a Lotomania com a definição completa', async () => {
+    it('lista a Mega-Sena, a Lotomania e a Lotofácil com a definição completa', async () => {
       // Act
       const resposta = await http().get('/loterias').expect(200);
 
@@ -34,6 +34,7 @@ describe('API de loterias (HTTP)', () => {
       expect(resposta.body.map((l: { id: string }) => l.id)).toEqual([
         'megasena',
         'lotomania',
+        'lotofacil',
       ]);
       expect(resposta.body[0]).toMatchObject({
         id: 'megasena',
@@ -63,6 +64,24 @@ describe('API de loterias (HTTP)', () => {
       expect(resposta.body[1].regrasDisponiveis).toEqual([
         'quadrantes',
         'linhas',
+        'pares',
+      ]);
+      expect(resposta.body[2]).toMatchObject({
+        id: 'lotofacil',
+        nome: 'Lotofácil',
+        cor: '#930089',
+        universo: 25,
+        primeiraDezena: 1,
+        sorteadas: 15,
+        aposta: { min: 15, max: 20 },
+        volante: { colunas: 5, linhas: 5 },
+        quadrantes: 4,
+        diasSorteio: [0, 1, 2, 3, 4, 5, 6],
+      });
+      expect(resposta.body[2].faixas).toHaveLength(5);
+      expect(resposta.body[2].regrasDisponiveis).toEqual([
+        'quadrantes',
+        'historico',
         'pares',
       ]);
     });

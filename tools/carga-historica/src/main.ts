@@ -10,7 +10,7 @@
  * (grava os concursos lidos no formato de tools/fixtures; com ele, o banco NÃO é tocado).
  *
  * Idempotente: pode rodar quantas vezes quiser; só grava o que for novo ou diferente.
- * Banco: DATABASE_URL (padrão file:./apps/api/dados/sorteios.db). Aplique antes `pnpm prisma:migrar`.
+ * Banco: DATABASE_URL (padrão: o PostgreSQL do docker-compose.yml). Aplique antes `pnpm prisma:migrar`.
  */
 import { resolve } from 'node:path';
 import {

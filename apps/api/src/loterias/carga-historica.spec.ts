@@ -28,7 +28,7 @@ describe('carga histórica da Mega-Sena (3.070 concursos)', () => {
   let primeiraCarga: Awaited<ReturnType<typeof carregarFixtureNoBanco>>;
 
   beforeAll(async () => {
-    banco = criarBancoTemporario();
+    banco = await criarBancoTemporario();
     app = await criarAppDeTeste(banco.url);
     prisma = app.get(PrismaService);
     primeiraCarga = await carregarFixtureNoBanco(app);
@@ -36,7 +36,7 @@ describe('carga histórica da Mega-Sena (3.070 concursos)', () => {
 
   afterAll(async () => {
     await app.close();
-    banco.remover();
+    await banco.remover();
   });
 
   it('grava 3070 concursos novos, 18.420 dezenas e 903 locais', async () => {

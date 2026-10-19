@@ -1,4 +1,5 @@
 import type { Concurso } from '@sorteios/core';
+import { mapearRespostaCaixaLotofacil } from '@sorteios/loterias/lotofacil';
 import { mapearRespostaCaixaLotomania } from '@sorteios/loterias/lotomania';
 import { mapearRespostaCaixa } from '@sorteios/loterias/mega-sena';
 
@@ -9,4 +10,5 @@ export type MapeadorCaixa = (json: unknown) => Concurso;
 export const mapeadoresPorLoteria: Record<string, MapeadorCaixa> = {
   megasena: mapearRespostaCaixa,
   lotomania: mapearRespostaCaixaLotomania,
+  lotofacil: mapearRespostaCaixaLotofacil,
 };

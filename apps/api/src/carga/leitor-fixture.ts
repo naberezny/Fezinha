@@ -8,6 +8,7 @@ const PASTA_FIXTURES = resolve(__dirname, '..', '..', '..', '..', 'tools', 'fixt
 export const ARQUIVOS_FIXTURE: Record<string, string> = {
   megasena: 'megasena-3070.json',
   lotomania: 'lotomania-2987.json',
+  lotofacil: 'lotofacil-3807.json',
 };
 
 /** Caminho do fixture congelado da loteria; lança erro se ela não tem fixture. */

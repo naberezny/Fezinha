@@ -92,7 +92,7 @@
                               <div class="p">
                                 <label for="gerar-atraso-minimo"
                                   >Atraso mínimo para entrar no peso<br />
-                                  <span class="hint">em concursos (esperado: {{ estado.atrasoReferencia() }})</span></label
+                                  <span class="hint">em concursos (esperado: {{ estado.atrasoReferenciaTexto() }})</span></label
                                 >
                                 <input
                                   class="num"
@@ -267,7 +267,7 @@
             <div class="hint legenda-atraso" id="gerar-legenda-atraso">
               O número pequeno em cada bola é o <b>atraso</b> da dezena: há quantos concursos ela não é sorteada (0 = saiu no
               último). A média do jogo é a média desses atrasos; o esperado por dezena é
-              {{ estado.atrasoReferencia() }} concursos.
+              {{ estado.atrasoReferenciaTexto() }} concursos.
             </div>
           } @else if (estado.semJogos()) {
             <div class="vazio" id="gerar-sem-jogos">

@@ -44,6 +44,12 @@
       ],
       "@sorteios/loterias/lotomania/definicao": [
         "./libs/loterias/lotomania/src/definicao.ts"
+      ],
+      "@sorteios/loterias/lotofacil": [
+        "./libs/loterias/lotofacil/src/index.ts"
+      ],
+      "@sorteios/loterias/lotofacil/definicao": [
+        "./libs/loterias/lotofacil/src/definicao.ts"
       ]
     }
   },

@@ -14,7 +14,7 @@ describe('ConcursosRepositorio', () => {
 
   beforeAll(async () => {
     registrarMegaSena();
-    banco = criarBancoTemporario();
+    banco = await criarBancoTemporario();
     prisma = new PrismaService(banco.url);
     await prisma.onModuleInit();
     repositorio = new ConcursosRepositorio(prisma);
@@ -23,7 +23,7 @@ describe('ConcursosRepositorio', () => {
 
   afterAll(async () => {
     await prisma.onModuleDestroy();
-    banco.remover();
+    await banco.remover();
   });
 
   beforeEach(async () => {
@@ -34,7 +34,7 @@ describe('ConcursosRepositorio', () => {
     it('aplica a migration em banco vazio e cria todas as tabelas', async () => {
       // Arrange / Act
       const tabelas = await prisma.$queryRawUnsafe<{ name: string }[]>(
-        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'",
+        "SELECT table_name AS name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'",
       );
 
       // Assert

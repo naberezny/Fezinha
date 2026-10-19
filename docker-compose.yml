@@ -1,0 +1,24 @@
+# PostgreSQL local do Sorteios (API e testes).
+#   docker compose up -d postgres
+# Os dados ficam no volume `sorteios-postgres` (sobrevive a `docker compose down`; some com `down -v`).
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: sorteios-postgres
+    environment:
+      POSTGRES_USER: sorteios
+      POSTGRES_PASSWORD: sorteios
+      POSTGRES_DB: sorteios
+    ports:
+      - '5432:5432'
+    volumes:
+      - sorteios-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U sorteios -d sorteios']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+volumes:
+  sorteios-postgres:

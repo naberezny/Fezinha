@@ -7,6 +7,7 @@ type Json = Record<string, unknown>;
 const BASE: LoteriaDefinicao = {
   id: 'teste',
   nome: 'Teste',
+  cor: '#209869',
   universo: 60,
   primeiraDezena: 1,
   sorteadas: 6,

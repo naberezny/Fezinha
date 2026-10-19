@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import type { Jogo } from '@sorteios/core';
+import { formatarAtraso, type Jogo } from '@sorteios/core';
 import { BolaComponent } from '../bola/bola.component';
 
 /** Um jogo gerado: índice, bolas com badge de atraso e métricas à direita (`.jogo` do protótipo). */
@@ -108,6 +108,6 @@ export class JogoComponent {
   protected readonly atrasoMedioTexto = computed(() => this.jogo().atrasoMedio.toFixed(1).replace('.', ','));
   protected readonly explicacaoAtraso = computed(
     () =>
-      `média de concursos que cada dezena deste jogo está sem sair (o esperado por dezena é ${this.atrasoEsperado()})`,
+      `média de concursos que cada dezena deste jogo está sem sair (o esperado por dezena é ${formatarAtraso(this.atrasoEsperado())})`,
   );
 }

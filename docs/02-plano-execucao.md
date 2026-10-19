@@ -194,12 +194,18 @@
 - Criar `libs/loterias/lotofacil` (universo 25, sorteadas 15, aposta 15..20, volante 5×5, faixas 15..11 acertos, sorteios de segunda a sábado) + mapeador da Caixa + registro.
 - Carga histórica da Lotofácil pela mesma ferramenta (planilha da Caixa).
 - **Critério de sucesso:** nenhuma alteração em `apps/app` nem em `libs/ui`; a loteria aparece no seletor, o volante vira 5×5, `colunas` fica desabilitado (15 > 5), estatísticas e sincronização funcionam. Se precisar tocar tela, é defeito de arquitetura a corrigir nesta fase.
+- **Feito em 19/10/2026.** A Lotofácil apareceu sem tocar telas, exceto por um defeito corrigido: o "atraso esperado"
+  (`universo / sorteadas`) era exibido cru e era inteiro nas outras loterias; na Lotofácil é 25/15 = 1,666…
+  Agora `formatarAtraso` (core) formata a exibição ("1,7") e o atraso mínimo começa no inteiro mais próximo (2).
+  Sorteios: segunda a sexta e mais um no fim de semana (sábado ou domingo desde junho/2026), por isso `diasSorteio` = 0..6.
+  Regras: `quadrantes`, `historico`, `pares`; fora `consecutivas` (só 13% dos 3.807 resultados reais passam) e `linhas` (2,8%).
 
 ---
 
 ## Fase 7 — Migração para PostgreSQL (quando decidir)
 
 Seguir a seção 9 da especificação; critério: suíte da API verde contra Postgres e `pnpm carga:megasena` idempotente nos dois bancos.
+**Feito em 19/10/2026:** 181 testes da API verdes no PostgreSQL 17 (docker-compose); cargas das três loterias idempotentes.
 
 ---
 

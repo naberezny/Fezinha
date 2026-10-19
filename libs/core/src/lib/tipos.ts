@@ -161,7 +161,10 @@ export function chaveJogo(dezenas: number[]): string {
   return [...dezenas].sort((a, b) => a - b).join('-');
 }
 
-/** Atraso esperado de uma dezena: universo / sorteadas (10 na Mega-Sena, 5 na Lotomania). */
+/**
+ * Atraso esperado de uma dezena: universo / sorteadas (10 na Mega-Sena, 5 na Lotomania, 1,666… na Lotofácil).
+ * Valor exato, usado nos pesos; para exibir, `formatarAtraso`.
+ */
 export function atrasoEsperado(def: LoteriaDefinicao): number {
   return def.universo / def.sorteadas;
 }
@@ -197,6 +200,14 @@ export function dezenasDe(def: LoteriaDefinicao): number[] {
 /** Verdadeiro se `n` é uma dezena válida da loteria (inteiro dentro do intervalo). */
 export function dezenaValida(n: number, def: LoteriaDefinicao): boolean {
   return Number.isInteger(n) && n >= def.primeiraDezena && n <= ultimaDezena(def);
+}
+
+/**
+ * Texto de exibição de um atraso em concursos: até 1 casa decimal, vírgula decimal e sem ",0"
+ * (atraso esperado: Mega-Sena 10 → "10"; Lotofácil 25/15 → "1,7").
+ */
+export function formatarAtraso(valor: number): string {
+  return String(Math.round(valor * 10) / 10).replace('.', ',');
 }
 
 /** Texto de exibição da dezena com 2 dígitos ("00", "07", "60"). */

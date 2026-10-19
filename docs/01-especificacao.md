@@ -22,7 +22,7 @@ Aviso de produto (obrigatório em tela): cada sorteio é independente; os modos 
 | D1 | App | **Angular + Ionic**, standalone components, PWA | Mesmo modelo mental do NestJS; Ionic só na casca (abas, modais, área segura); conteúdo com os componentes do protótipo |
 | D2 | API | **NestJS** | TypeScript ponta a ponta; domínio compartilhado com o app; módulo por loteria |
 | D3 | Domínio | **lib `core` pura** (sem DOM, sem rede, sem Prisma) | Uma única implementação de regras, testada uma vez, usada por app e API |
-| D4 | Banco | **SQLite em arquivo via Prisma** agora; **PostgreSQL depois** | Testes e apresentações sem infraestrutura. Migração = trocar provider + regenerar migrations |
+| D4 | Banco | **SQLite em arquivo via Prisma** agora; **PostgreSQL depois** — **migrado para PostgreSQL 17 em 19/10/2026** (seção 9) | Testes e apresentações sem infraestrutura. Migração = trocar provider + regenerar migrations |
 | D5 | Portabilidade de banco | Nenhum SQL de dialeto; sem views; datas ISO em texto; dinheiro em **centavos (BigInt)**; enums como texto | Garante a migração D4 em horas |
 | D6 | Monorepo | **Nx + pnpm** | Grafo de dependências, cache de build, geradores Angular/Nest nativos |
 | D7 | Testes | **Jest** (libs, app, api) + **Playwright** (e2e do app) | Um runner só; paridade com os scripts Python via fixtures |
@@ -158,7 +158,7 @@ Coluna = (n−1) mod colunas; linha = ⌊(n−1)/colunas⌋; quadrante = (linha 
 
 ## 5. API (NestJS)
 
-### 5.1 Modelo de dados (Prisma, provider sqlite)
+### 5.1 Modelo de dados (Prisma, provider postgresql; sqlite até 19/10/2026)
 
 ```prisma
 model Loteria       { id String @id; nome String; concursos Concurso[]; sincronizacao Sincronizacao? }
@@ -261,11 +261,16 @@ Service worker do Angular; último `historico`, `resultados` e `estatisticas` gu
 
 ## 8. Fora de escopo (por enquanto)
 
-Login/contas, apostas ou pagamento, job agendado (D10), PostgreSQL (D4), notificações push por servidor, outras loterias além da Mega-Sena (Lotofácil entra como prova de plugabilidade na última fase).
+Login/contas, apostas ou pagamento, job agendado (D10), notificações push por servidor. (PostgreSQL, D4, e a Lotofácil, prova de plugabilidade, já foram feitos.)
 
-## 9. Migração futura para PostgreSQL (procedimento)
+## 9. Migração para PostgreSQL (procedimento; executado em 19/10/2026)
 
-1. Provisionar Postgres (via OIL se for infra PJUS); `DATABASE_URL` nova.
-2. `schema.prisma`: `provider = "postgresql"`; apagar a pasta `prisma/migrations`; `prisma migrate dev --name inicial`.
-3. Exportar dados do SQLite com script Prisma (`findMany` → JSON) e importar com o mesmo upsert da carga histórica.
-4. Rodar a suíte de testes da API apontando para o Postgres; testes unitários continuam em SQLite.
+1. Provisionar Postgres (via OIL se for infra PJUS); `DATABASE_URL` nova. Local: `docker compose up -d postgres` (`docker-compose.yml`, PostgreSQL 17).
+2. `schema.prisma`: `provider = "postgresql"`; apagar a pasta `prisma/migrations`; gerar a migration inicial
+   (feito com `prisma migrate diff --from-empty --to-schema apps/api/prisma/schema.prisma --script`, sem precisar de banco).
+3. Driver: `@prisma/adapter-better-sqlite3` → `@prisma/adapter-pg` (+ `pg`) em `PrismaService`; saem os `PRAGMA` do SQLite.
+4. Dados: não houve exportação. O banco da API é derivado (fixtures + Caixa), então bastou `pnpm prisma:migrar` e as cargas
+   (`carga:megasena`, `carga:lotomania`, `carga:lotofacil`); a sincronização lazy completa o que faltar.
+5. Testes: **todos** rodam no Postgres. O cliente Prisma 7 é gerado para um único provider, então a ideia original de manter
+   testes em SQLite não se aplica. Cada suíte cria um database `teste_<uuid>` (`apps/api/src/testes/banco-temporario.ts`),
+   aplica as migrations e o derruba no fim.

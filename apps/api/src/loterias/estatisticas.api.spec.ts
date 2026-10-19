@@ -28,14 +28,14 @@ describe('GET /loterias/:id/estatisticas', () => {
   const http = () => request(app.getHttpServer());
 
   beforeAll(async () => {
-    banco = criarBancoTemporario();
+    banco = await criarBancoTemporario();
     app = await criarAppDeTeste(banco.url);
     await carregarFixtureNoBanco(app, 100);
   });
 
   afterAll(async () => {
     await app.close();
-    banco.remover();
+    await banco.remover();
   });
 
   beforeEach(() => {
