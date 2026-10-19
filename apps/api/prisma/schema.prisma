@@ -1,0 +1,86 @@
+// Modelo de dados do Sorteios (seção 5.1 da especificação).
+// Portabilidade (D5): sem enums, dinheiro em centavos (BigInt), datas em texto ISO.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/prisma/gerado"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Loteria {
+  id            String         @id
+  nome          String
+  concursos     Concurso[]
+  sincronizacao Sincronizacao?
+}
+
+model Concurso {
+  id                        Int      @id @default(autoincrement())
+  loteriaId                 String
+  numero                    Int
+  dataSorteio               String
+  acumulou                  Boolean
+  valorAcumuladoCentavos    BigInt   @default(0)
+  estimativaProximoCentavos BigInt   @default(0)
+  arrecadacaoCentavos       BigInt   @default(0)
+  acumuladoEspecialCentavos BigInt   @default(0)
+  proximoNumero             Int?
+  dataProximoSorteio        String?
+  observacao                String?
+  origem                    String
+  atualizadoEm              String
+  dezenas                   Dezena[]
+  premiacoes                Premiacao[]
+  locais                    LocalGanhador[]
+  loteria                   Loteria  @relation(fields: [loteriaId], references: [id])
+
+  @@unique([loteriaId, numero])
+  @@index([loteriaId, dataSorteio])
+}
+
+model Dezena {
+  concursoId Int
+  ordem      Int
+  dezena     Int
+  concurso   Concurso @relation(fields: [concursoId], references: [id], onDelete: Cascade)
+
+  @@id([concursoId, ordem])
+  @@index([dezena])
+}
+
+model Premiacao {
+  concursoId     Int
+  faixa          Int
+  descricao      String
+  ganhadores     Int
+  rateioCentavos BigInt
+  concurso       Concurso @relation(fields: [concursoId], references: [id], onDelete: Cascade)
+
+  @@id([concursoId, faixa])
+}
+
+model LocalGanhador {
+  id         Int      @id @default(autoincrement())
+  concursoId Int
+  cidade     String?
+  uf         String?
+  descricao  String
+  quantidade Int      @default(1)
+  concurso   Concurso @relation(fields: [concursoId], references: [id], onDelete: Cascade)
+
+  @@index([concursoId])
+}
+
+model Sincronizacao {
+  loteriaId        String  @id
+  ultimaEm         String?
+  ultimoConcurso   Int?
+  proximoSorteioEm String?
+  ultimoErro       String?
+  emAndamento      Boolean @default(false)
+  loteria          Loteria @relation(fields: [loteriaId], references: [id])
+}

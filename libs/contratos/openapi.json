@@ -1,0 +1,903 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/loterias": {
+      "get": {
+        "operationId": "LoteriasController_listar",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Definições das loterias registradas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LoteriaDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "loterias"
+        ]
+      }
+    },
+    "/loterias/{id}/resultados": {
+      "get": {
+        "operationId": "LoteriasController_resultados",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "megasena",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limite",
+            "required": false,
+            "in": "query",
+            "description": "1 a 200",
+            "schema": {
+              "example": 8,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pagina",
+            "required": false,
+            "in": "query",
+            "description": "Base 1",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaResultadosDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Loteria desconhecida"
+          }
+        },
+        "tags": [
+          "loterias"
+        ]
+      }
+    },
+    "/loterias/{id}/resultados/{numero}": {
+      "get": {
+        "operationId": "LoteriasController_resultado",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "megasena",
+              "type": "string"
+            }
+          },
+          {
+            "name": "numero",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": 3070,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultadoDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Loteria ou concurso desconhecido"
+          }
+        },
+        "tags": [
+          "loterias"
+        ]
+      }
+    },
+    "/loterias/{id}/estatisticas": {
+      "get": {
+        "operationId": "LoteriasController_estatisticasDaLoteria",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "megasena",
+              "type": "string"
+            }
+          },
+          {
+            "name": "periodo",
+            "required": false,
+            "in": "query",
+            "description": "ultimos:N, ano:AAAA ou tudo",
+            "schema": {
+              "example": "ultimos:50",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstatisticasDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Loteria desconhecida"
+          }
+        },
+        "tags": [
+          "loterias"
+        ]
+      }
+    },
+    "/loterias/{id}/historico": {
+      "get": {
+        "operationId": "LoteriasController_historico",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "megasena",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cabeçalho ETag: \"<ultimoNumero>-<total>\"",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoricoDto"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "If-None-Match coincide com a ETag atual"
+          },
+          "404": {
+            "description": "Loteria desconhecida"
+          }
+        },
+        "tags": [
+          "loterias"
+        ]
+      }
+    },
+    "/saude": {
+      "get": {
+        "operationId": "SaudeController_saude",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaudeDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "saude"
+        ]
+      }
+    },
+    "/loterias/{id}/sincronizacao": {
+      "get": {
+        "operationId": "SincronizacaoController_estado",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "megasena",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Última sincronização, último concurso e último erro",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SincronizacaoDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Loteria desconhecida"
+          }
+        },
+        "tags": [
+          "sincronizacao"
+        ]
+      }
+    },
+    "/loterias/{id}/sincronizar": {
+      "post": {
+        "operationId": "SincronizacaoController_sincronizar",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "megasena",
+              "type": "string"
+            }
+          },
+          {
+            "name": "de",
+            "required": false,
+            "in": "query",
+            "description": "Primeiro concurso do intervalo a reimportar",
+            "schema": {
+              "example": 3000,
+              "type": "number"
+            }
+          },
+          {
+            "name": "ate",
+            "required": false,
+            "in": "query",
+            "description": "Último concurso do intervalo (máximo de 500 concursos)",
+            "schema": {
+              "example": 3070,
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-Chave-Admin",
+            "in": "header",
+            "description": "Igual à variável de ambiente CHAVE_ADMIN",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Força a busca na Caixa e informa o que mudou",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultadoSincronizacaoDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Intervalo inválido"
+          },
+          "401": {
+            "description": "Chave de administrador inválida"
+          },
+          "404": {
+            "description": "Loteria desconhecida"
+          },
+          "429": {
+            "description": "Limite de 5 requisições por minuto"
+          },
+          "502": {
+            "description": "Falha ao consultar a Caixa"
+          },
+          "503": {
+            "description": "Chave de administrador não configurada"
+          }
+        },
+        "security": [
+          {
+            "chave-admin": []
+          }
+        ],
+        "tags": [
+          "sincronizacao"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Sorteios API",
+    "description": "Resultados, estatísticas e histórico de loterias da Caixa.",
+    "version": "0.1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "chave-admin": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Chave-Admin"
+      }
+    },
+    "schemas": {
+      "ApostaDto": {
+        "type": "object",
+        "properties": {
+          "min": {
+            "type": "number"
+          },
+          "max": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "min",
+          "max"
+        ]
+      },
+      "VolanteDto": {
+        "type": "object",
+        "properties": {
+          "colunas": {
+            "type": "number"
+          },
+          "linhas": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "colunas",
+          "linhas"
+        ]
+      },
+      "FaixaPremiacaoDto": {
+        "type": "object",
+        "properties": {
+          "faixa": {
+            "type": "number",
+            "description": "1 = prêmio principal"
+          },
+          "acertos": {
+            "type": "number"
+          },
+          "nome": {
+            "type": "string",
+            "example": "Sena"
+          }
+        },
+        "required": [
+          "faixa",
+          "acertos",
+          "nome"
+        ]
+      },
+      "LoteriaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "megasena"
+          },
+          "nome": {
+            "type": "string",
+            "example": "Mega-Sena"
+          },
+          "cor": {
+            "type": "string",
+            "example": "#209869",
+            "description": "cor base da marca, hex"
+          },
+          "universo": {
+            "type": "number",
+            "description": "Quantidade de dezenas do volante: as válidas vão de primeiraDezena a primeiraDezena + universo - 1"
+          },
+          "primeiraDezena": {
+            "type": "number",
+            "enum": [
+              0,
+              1
+            ],
+            "description": "Menor dezena do volante: 1 (Mega-Sena, 01..60) ou 0 (Lotomania, 00..99)"
+          },
+          "sorteadas": {
+            "type": "number",
+            "description": "Dezenas sorteadas por concurso"
+          },
+          "aposta": {
+            "$ref": "#/components/schemas/ApostaDto"
+          },
+          "volante": {
+            "$ref": "#/components/schemas/VolanteDto"
+          },
+          "quadrantes": {
+            "type": "number"
+          },
+          "faixas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FaixaPremiacaoDto"
+            }
+          },
+          "diasSorteio": {
+            "description": "0 = domingo … 6 = sábado",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "regrasDisponiveis": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "nome",
+          "cor",
+          "universo",
+          "primeiraDezena",
+          "sorteadas",
+          "aposta",
+          "volante",
+          "quadrantes",
+          "faixas",
+          "diasSorteio",
+          "regrasDisponiveis"
+        ]
+      },
+      "PremiacaoDto": {
+        "type": "object",
+        "properties": {
+          "faixa": {
+            "type": "number"
+          },
+          "ganhadores": {
+            "type": "number"
+          },
+          "rateioCentavos": {
+            "type": "number",
+            "description": "Prêmio por ganhador, em centavos"
+          }
+        },
+        "required": [
+          "faixa",
+          "ganhadores",
+          "rateioCentavos"
+        ]
+      },
+      "LocalGanhadorDto": {
+        "type": "object",
+        "properties": {
+          "cidade": {
+            "type": "string"
+          },
+          "uf": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string",
+            "description": "Texto original da fonte (ex.: \"DOURADOS/MS\")"
+          },
+          "quantidade": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "descricao",
+          "quantidade"
+        ]
+      },
+      "ResultadoDto": {
+        "type": "object",
+        "properties": {
+          "numero": {
+            "type": "number"
+          },
+          "data": {
+            "type": "string",
+            "example": "2026-10-14",
+            "description": "ISO yyyy-mm-dd"
+          },
+          "dezenas": {
+            "description": "Em ordem crescente",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "acumulou": {
+            "type": "boolean"
+          },
+          "premiacoes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PremiacaoDto"
+            }
+          },
+          "valorAcumuladoCentavos": {
+            "type": "number"
+          },
+          "estimativaProximoCentavos": {
+            "type": "number"
+          },
+          "arrecadacaoCentavos": {
+            "type": "number"
+          },
+          "acumuladoEspecialCentavos": {
+            "type": "number"
+          },
+          "proximoNumero": {
+            "type": "number"
+          },
+          "dataProximoSorteio": {
+            "type": "string",
+            "description": "ISO yyyy-mm-dd"
+          },
+          "observacao": {
+            "type": "string"
+          },
+          "locaisGanhadores": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LocalGanhadorDto"
+            }
+          }
+        },
+        "required": [
+          "numero",
+          "data",
+          "dezenas",
+          "acumulou",
+          "premiacoes",
+          "valorAcumuladoCentavos",
+          "estimativaProximoCentavos",
+          "arrecadacaoCentavos",
+          "acumuladoEspecialCentavos",
+          "locaisGanhadores"
+        ]
+      },
+      "PaginaResultadosDto": {
+        "type": "object",
+        "properties": {
+          "itens": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResultadoDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "description": "Total de concursos da loteria"
+          },
+          "pagina": {
+            "type": "number",
+            "description": "Base 1"
+          },
+          "limite": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "itens",
+          "total",
+          "pagina",
+          "limite"
+        ]
+      },
+      "EstatisticaDezenaDto": {
+        "type": "object",
+        "properties": {
+          "dezena": {
+            "type": "number"
+          },
+          "frequencia": {
+            "type": "number",
+            "description": "Vezes que saiu no período"
+          },
+          "atraso": {
+            "type": "number",
+            "description": "Concursos desde a última aparição (0 = saiu no último)"
+          },
+          "atrasoMaximo": {
+            "type": "number",
+            "description": "Maior intervalo sem sair já registrado"
+          },
+          "ultimoConcurso": {
+            "type": "number"
+          },
+          "ultimaData": {
+            "type": "string"
+          },
+          "probAusencia": {
+            "type": "number",
+            "description": "(1 - sorteadas/universo) ^ atraso"
+          }
+        },
+        "required": [
+          "dezena",
+          "frequencia",
+          "atraso",
+          "atrasoMaximo",
+          "probAusencia"
+        ]
+      },
+      "DistribuicaoParesDto": {
+        "type": "object",
+        "properties": {
+          "pares": {
+            "type": "number",
+            "description": "Quantidade de dezenas pares no sorteio"
+          },
+          "total": {
+            "type": "number",
+            "description": "Quantos concursos tiveram essa quantidade"
+          }
+        },
+        "required": [
+          "pares",
+          "total"
+        ]
+      },
+      "FaixaSomaDto": {
+        "type": "object",
+        "properties": {
+          "inicio": {
+            "type": "number",
+            "description": "Início da faixa (múltiplo do tamanho da faixa)"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "inicio",
+          "total"
+        ]
+      },
+      "ResumoAnoDto": {
+        "type": "object",
+        "properties": {
+          "ano": {
+            "type": "number"
+          },
+          "concursos": {
+            "type": "number"
+          },
+          "acumulados": {
+            "type": "number"
+          },
+          "ganhadores": {
+            "type": "number"
+          },
+          "maiorPremioCentavos": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "ano",
+          "concursos",
+          "acumulados",
+          "ganhadores",
+          "maiorPremioCentavos"
+        ]
+      },
+      "FrequenciaMesDto": {
+        "type": "object",
+        "properties": {
+          "anoMes": {
+            "type": "string",
+            "example": "2026-10"
+          },
+          "dezena": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "anoMes",
+          "dezena",
+          "total"
+        ]
+      },
+      "EstatisticasDto": {
+        "type": "object",
+        "properties": {
+          "periodo": {
+            "type": "string",
+            "example": "ultimos:50"
+          },
+          "concursosNoPeriodo": {
+            "type": "number"
+          },
+          "dezenas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EstatisticaDezenaDto"
+            }
+          },
+          "pares": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DistribuicaoParesDto"
+            }
+          },
+          "soma": {
+            "description": "Soma das dezenas por faixa de 20",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FaixaSomaDto"
+            }
+          },
+          "porAno": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResumoAnoDto"
+            }
+          },
+          "porMes": {
+            "description": "Últimos 12 meses",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FrequenciaMesDto"
+            }
+          }
+        },
+        "required": [
+          "periodo",
+          "concursosNoPeriodo",
+          "dezenas",
+          "pares",
+          "soma",
+          "porAno",
+          "porMes"
+        ]
+      },
+      "HistoricoDto": {
+        "type": "object",
+        "properties": {
+          "loteria": {
+            "$ref": "#/components/schemas/LoteriaDto"
+          },
+          "concursos": {
+            "description": "Concursos completos, ordem crescente de número",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResultadoDto"
+            }
+          }
+        },
+        "required": [
+          "loteria",
+          "concursos"
+        ]
+      },
+      "SaudeDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "versao": {
+            "type": "string",
+            "example": "0.1.0"
+          },
+          "ultimoConcurso": {
+            "type": "number",
+            "nullable": true,
+            "description": "Maior número de concurso gravado"
+          }
+        },
+        "required": [
+          "ok",
+          "versao",
+          "ultimoConcurso"
+        ]
+      },
+      "SincronizacaoDto": {
+        "type": "object",
+        "properties": {
+          "loteriaId": {
+            "type": "string"
+          },
+          "ultimaEm": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO 8601"
+          },
+          "ultimoConcurso": {
+            "type": "number",
+            "nullable": true
+          },
+          "proximoSorteioEm": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO 8601"
+          },
+          "ultimoErro": {
+            "type": "string",
+            "nullable": true
+          },
+          "emAndamento": {
+            "type": "boolean",
+            "description": "Informativo: há uma sincronização em curso"
+          }
+        },
+        "required": [
+          "loteriaId",
+          "ultimaEm",
+          "ultimoConcurso",
+          "proximoSorteioEm",
+          "ultimoErro",
+          "emAndamento"
+        ]
+      },
+      "ResultadoSincronizacaoDto": {
+        "type": "object",
+        "properties": {
+          "novos": {
+            "type": "number"
+          },
+          "atualizados": {
+            "type": "number"
+          },
+          "inalterados": {
+            "type": "number"
+          },
+          "ultimoConcurso": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "novos",
+          "atualizados",
+          "inalterados",
+          "ultimoConcurso"
+        ]
+      }
+    }
+  }
+}

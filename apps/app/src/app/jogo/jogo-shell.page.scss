@@ -1,0 +1,30 @@
+/* Tab bar do celular; a barra superior do desktop vive em navegacao/barra-superior. */
+
+/* Início e Tema: itens da tab bar que não são abas (link e botão com a aparência de uma aba) */
+.aba-extra {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 10px;
+  font-weight: 500;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.aba-extra ion-icon {
+  font-size: 24px;
+}
+
+/* Desktop: a tab bar não aparece */
+@media (min-width: 860px) {
+  ion-tab-bar {
+    display: none;
+  }
+}

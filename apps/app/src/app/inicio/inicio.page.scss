@@ -1,0 +1,87 @@
+/* Layout geral (.pagina, .panel, .btn, .section-head...) vem de styles/utilitarios.scss. */
+
+.cartoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 14px;
+}
+
+/*
+ * Cartão de loteria: a cor do jogo (--cor-cartao, vinda da API) vai na borda, no selo e no botão principal.
+ * --accent e --accent-ink são redefinidos só dentro do cartão, então o .btn.primary global já sai na cor do jogo.
+ */
+.cartao {
+  --accent: var(--cor-cartao);
+  --tinta-cartao: var(--fg-sobre-cor-escura);
+  --accent-ink: var(--tinta-cartao);
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  border: 2px solid var(--cor-cartao);
+}
+
+.cartao[data-tinta='clara'] {
+  --tinta-cartao: var(--fg-sobre-cor-escura);
+}
+.cartao[data-tinta='escura'] {
+  --tinta-cartao: var(--fg-sobre-cor-clara);
+}
+
+.topo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.selo {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--cor-cartao);
+  color: var(--tinta-cartao);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.ultimo {
+  display: grid;
+  gap: 2px;
+  font-size: 13.5px;
+}
+
+.ultimo .situacao {
+  font-weight: 600;
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.acoes .btn {
+  text-decoration: none;
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+.acoes .btn:not(.primary) {
+  color: var(--fg);
+}
+
+/* "Em breve": cinza, sem botões */
+.cartao.em-breve {
+  --accent: var(--muted);
+  border: 2px dashed var(--line);
+  background: var(--surface-2);
+  opacity: 0.75;
+}
+
+.em-breve .selo {
+  background: var(--line);
+  color: var(--muted);
+}

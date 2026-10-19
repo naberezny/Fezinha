@@ -1,0 +1,141 @@
+<ion-content>
+  <main class="pagina">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{{ loteria().nome }}</p>
+        <h2>Estatísticas das dezenas</h2>
+      </div>
+      <div class="filtros">
+        @if (temDados()) {
+          <span class="eyebrow">Período</span>
+          <srt-segmento [opcoes]="opcoesPeriodo()" [(selecionado)]="chavePeriodo" rotuloAria="Período" />
+        }
+      </div>
+    </div>
+
+    @if (temDados()) {
+      <div class="kpis" data-teste="kpis">
+        @for (kpi of kpis(); track kpi.titulo) {
+          <srt-kpi [titulo]="kpi.titulo" [valor]="kpi.valor" [detalhe]="kpi.detalhe" />
+        }
+      </div>
+
+      @if (periodoVazio()) {
+        <p class="hint" role="status" data-teste="periodo-vazio">Nenhum concurso no período escolhido.</p>
+      }
+
+      <div class="grid2">
+        <section class="panel card wide" data-teste="frequencia" aria-labelledby="titulo-frequencia">
+          <div class="head">
+            <div>
+              <h3 id="titulo-frequencia">Frequência por dezena</h3>
+              <div class="sub">{{ subtituloFrequencia() }}</div>
+            </div>
+            <srt-segmento [opcoes]="opcoesOrdem" [(selecionado)]="chaveOrdem" rotuloAria="Ordenação" />
+          </div>
+          <srt-grafico-barras [itens]="itensFrequencia()" [larguraMinimaBarra]="16" rotuloAria="Frequência por dezena" />
+          <div class="legend">
+            <span><i class="s1"></i>vezes sorteada</span>
+            <span><i class="s1 esmaecida"></i>demais dezenas</span>
+            <span>as 5 mais e as 5 menos sorteadas ficam em destaque</span>
+          </div>
+        </section>
+
+        <section class="panel card" data-teste="atraso" aria-labelledby="titulo-atraso">
+          <div class="head">
+            <div>
+              <h3 id="titulo-atraso">Atraso atual</h3>
+              <div class="sub">concursos desde a última vez que a dezena saiu · 15 maiores</div>
+            </div>
+          </div>
+          <srt-grafico-barras-horizontais [itens]="itensAtraso()" [referencia]="atrasoEsperadoConcursos()" rotuloAria="Atraso atual" />
+          <div class="legend">
+            <span><i class="s1"></i>atraso</span>
+            <span><i class="linha-ref"></i>esperado: {{ atrasoEsperadoConcursos() }} concursos</span>
+          </div>
+        </section>
+
+        <section class="panel card" data-teste="mais-menos" aria-labelledby="titulo-mais-menos">
+          <div class="head">
+            <div>
+              <h3 id="titulo-mais-menos">Mais e menos sorteadas</h3>
+              <div class="sub">{{ textoPeriodo() }}</div>
+            </div>
+          </div>
+          <div class="duas">
+            <div>
+              <p class="eyebrow">Mais sorteadas</p>
+              <srt-lista-barras [itens]="maisSorteadas()" />
+            </div>
+            <div>
+              <p class="eyebrow">Menos sorteadas</p>
+              <srt-lista-barras [itens]="menosSorteadas()" [maximo]="maximoMaisSorteadas()" />
+            </div>
+          </div>
+        </section>
+
+        <section class="panel card wide" data-teste="mapa-calor" aria-labelledby="titulo-mapa">
+          <div class="head">
+            <div>
+              <h3 id="titulo-mapa">Mapa de calor · dezena × mês</h3>
+              <div class="sub">últimos 12 meses · quanto mais escuro, mais vezes a dezena saiu no mês</div>
+            </div>
+          </div>
+          <srt-mapa-calor
+            [linhas]="mapaCalor().linhas"
+            [colunas]="loteria().universo"
+            [valores]="mapaCalor().valores"
+            [rotuloColuna]="rotuloColunaMapa()"
+            [larguraMinimaColuna]="larguraMinimaColunaMapa()"
+            rotuloAria="Mapa de calor: frequência de cada dezena por mês"
+          />
+          <div class="legend">
+            <span><i class="seq-100"></i>0</span>
+            <span><i class="seq-250"></i>1</span>
+            <span><i class="seq-400"></i>2</span>
+            <span><i class="seq-550"></i>3</span>
+            <span><i class="seq-700"></i>4+</span>
+          </div>
+        </section>
+
+        <section class="panel card" data-teste="pares" aria-labelledby="titulo-pares">
+          <div class="head">
+            <div>
+              <h3 id="titulo-pares">Pares × ímpares por sorteio</h3>
+              <div class="sub">histórico completo · quantas dezenas pares saíram em cada concurso</div>
+            </div>
+          </div>
+          <srt-grafico-colunas [itens]="itensPares()" rotuloAria="Pares por sorteio" />
+        </section>
+
+        <section class="panel card" data-teste="soma" aria-labelledby="titulo-soma">
+          <div class="head">
+            <div>
+              <h3 id="titulo-soma">Soma das {{ loteria().sorteadas }} dezenas</h3>
+              <div class="sub">histórico completo · faixas de 20 em 20</div>
+            </div>
+          </div>
+          <srt-grafico-colunas [itens]="itensSoma()" rotuloAria="Soma das dezenas" />
+        </section>
+      </div>
+
+      <footer class="rodape" data-teste="rodape">
+        @for (nota of notasRodape(); track $index) {
+          <p>{{ nota }}</p>
+        }
+        @if (erro()) {
+          <p>Não foi possível atualizar agora: {{ erro() }}</p>
+        }
+      </footer>
+    } @else if (historico()) {
+      <div class="vazio" role="status" data-teste="sem-concursos">Nenhum concurso disponível.</div>
+    } @else if (erro() && !carregando()) {
+      <div class="vazio" role="alert" data-teste="erro">
+        <p>{{ erro() }}</p>
+        <button type="button" class="btn sm" data-teste="tentar-novamente" (click)="tentarNovamente()">Tentar de novo</button>
+      </div>
+    } @else {
+      <div class="vazio" role="status" data-teste="carregando">Carregando histórico…</div>
+    }
+  </main>
+</ion-content>

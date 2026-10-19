@@ -1,0 +1,53 @@
+<srt-barra-superior />
+<ion-content>
+  <main class="pagina">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Loterias da Caixa</p>
+        <h2>Sorteios</h2>
+      </div>
+      <p class="muted">Escolha um jogo para gerar apostas e acompanhar os resultados.</p>
+    </div>
+
+    <div class="cartoes" data-teste="cartoes">
+      @for (cartao of cartoes(); track cartao.definicao.id) {
+        <article
+          class="panel cartao"
+          [attr.data-loteria]="cartao.definicao.id"
+          [attr.data-tinta]="cartao.tinta"
+          [style.--cor-cartao]="cartao.definicao.cor"
+        >
+          <div class="topo">
+            <span class="selo num" aria-hidden="true">{{ cartao.selo }}</span>
+            <h3>{{ cartao.definicao.nome }}</h3>
+          </div>
+
+          @if (cartao.ultimo; as ultimo) {
+            <div class="ultimo" data-teste="ultimo">
+              <p class="num">{{ ultimo.titulo }}</p>
+              <p class="situacao">{{ ultimo.situacao }}</p>
+              <p class="muted">{{ ultimo.estimativa }}</p>
+            </div>
+          }
+
+          <div class="acoes">
+            <a class="btn primary" data-teste="gerar" [routerLink]="['/', cartao.definicao.id, 'gerar']">Gerar jogos</a>
+            <a class="btn" data-teste="resultados" [routerLink]="['/', cartao.definicao.id, 'resultados']"
+              >Ver todos os resultados</a
+            >
+          </div>
+        </article>
+      }
+
+      @for (loteria of emBreve(); track loteria.id) {
+        <article class="panel cartao em-breve" aria-disabled="true" [attr.data-loteria]="loteria.id">
+          <div class="topo">
+            <span class="selo" aria-hidden="true">·</span>
+            <h3>{{ loteria.nome }}</h3>
+          </div>
+          <p class="muted">Em breve</p>
+        </article>
+      }
+    </div>
+  </main>
+</ion-content>

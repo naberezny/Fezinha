@@ -1,0 +1,113 @@
+/* Barra superior: marca, jogo, links e tema. Corte em 860 px, como no protótipo. */
+
+:host {
+  display: block;
+}
+
+.topbar {
+  position: relative;
+  z-index: 5;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding-block-start: env(safe-area-inset-top, 0px);
+  padding-inline: max(16px, env(safe-area-inset-left, 0px))
+    max(16px, env(safe-area-inset-right, 0px));
+}
+
+.in {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 56px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--ball);
+  color: var(--ball-ink);
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+/* Nome do jogo aberto, na cor do jogo, separado da marca por um filete */
+.jogo {
+  padding-inline-start: 16px;
+  border-inline-start: 1px solid var(--line);
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--accent);
+}
+
+nav {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+nav a {
+  text-decoration: none;
+  color: var(--muted);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+nav a:hover {
+  background: var(--surface-2);
+  color: var(--fg);
+}
+
+nav a.ativo {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.tema {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+}
+
+/* Sem links (tela inicial) o tema vai para o fim da linha */
+.brand + .tema {
+  margin-left: auto;
+}
+
+.tema:hover {
+  background: var(--surface-2);
+  color: var(--fg);
+}
+
+/* Celular: no jogo a navegação é a tab bar */
+@media (max-width: 859.98px) {
+  .topbar.so-desktop {
+    display: none;
+  }
+}

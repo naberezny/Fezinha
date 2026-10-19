@@ -1,0 +1,290 @@
+<ion-content>
+  <main class="pagina">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Tela inicial</p>
+        <h2>Gerar jogos</h2>
+      </div>
+      @if (textoBase(); as base) {
+        <p class="muted" id="gerar-base">{{ base }}</p>
+      }
+    </div>
+
+    @if (avisoComCache(); as erroRede) {
+      <srt-aviso>{{ erroRede }} Os jogos usam os dados salvos neste aparelho.</srt-aviso>
+    }
+
+    <div class="panel gerador">
+      <form class="config" (submit)="aoSubmeter($event)" novalidate>
+        <div class="jogo-atual">
+          <p class="titulo-jogo">
+            <b id="gerar-jogo-nome">{{ estado.loteria().nome }}</b> ·
+            <a routerLink="/" id="gerar-trocar-jogo">trocar jogo</a>
+          </p>
+          <span class="hint" id="gerar-regras-aposta">{{ descricaoDaAposta() }}</span>
+          <a class="ver-resultados" id="gerar-ver-resultados" [routerLink]="['/', estado.loteria().id, 'resultados']"
+            >Ver todos os resultados</a
+          >
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label for="gerar-quantidade">Quantidade de jogos</label>
+            <srt-stepper
+              id="gerar-quantidade"
+              rotulo="Quantidade de jogos"
+              [min]="limites.quantidade.min"
+              [max]="limites.quantidade.max"
+              [valor]="estado.quantidadeJogos()"
+              (valorChange)="estado.definirQuantidadeJogos($event)"
+            />
+          </div>
+          <div class="field">
+            <label for="gerar-dezenas">Dezenas por jogo</label>
+            <srt-stepper
+              id="gerar-dezenas"
+              rotulo="Dezenas por jogo"
+              [min]="estado.loteria().aposta.min"
+              [max]="estado.loteria().aposta.max"
+              [valor]="estado.dezenasPorJogo()"
+              [desabilitado]="estado.apostaFixa()"
+              (valorChange)="estado.definirDezenasPorJogo($event)"
+            />
+          </div>
+        </div>
+        <div class="resumo-aposta">
+          @if (!estado.apostaFixa()) {
+            <span>Combinações por jogo: <b class="num" id="gerar-combinacoes">{{ estado.combinacoesTexto() }}</b></span>
+          }
+          <span
+            >Chance do prêmio principal ({{ estado.nomePremioPrincipal() }}) por jogo:
+            <b class="num" id="gerar-chance">{{ estado.chanceTexto() }}</b></span
+          >
+        </div>
+
+        <srt-acordeao>
+          <srt-acordeao-secao titulo="Modo de geração" [resumo]="estado.resumoModo()" [aberta]="true">
+            <div class="modos" role="radiogroup" aria-label="Modo de geração">
+              @for (modo of modos; track modo.id) {
+                <div class="modo" [class.ativo]="estado.estrategia() === modo.id">
+                  <input
+                    type="radio"
+                    name="gerar-modo"
+                    [id]="'gerar-modo-' + modo.id"
+                    [value]="modo.id"
+                    [checked]="estado.estrategia() === modo.id"
+                    (change)="estado.definirEstrategia(modo.id)"
+                  />
+                  <div class="conteudo">
+                    <label class="t" [attr.for]="'gerar-modo-' + modo.id"
+                      >{{ modo.titulo }}
+                      @if (modo.padrao) {
+                        <span class="d">padrão</span>
+                      }
+                    </label>
+                    @if (estado.estrategia() === modo.id) {
+                      <div class="corpo">
+                        <div class="d">{{ modo.descricao }}</div>
+                        @switch (modo.id) {
+                          @case ('atrasadas') {
+                            @let exemplos = estado.exemplosIntensidade();
+                            <div class="params">
+                              <div class="p">
+                                <label for="gerar-atraso-minimo"
+                                  >Atraso mínimo para entrar no peso<br />
+                                  <span class="hint">em concursos (esperado: {{ estado.atrasoReferencia() }})</span></label
+                                >
+                                <input
+                                  class="num"
+                                  type="number"
+                                  id="gerar-atraso-minimo"
+                                  [min]="limites.atrasoMinimo.min"
+                                  [max]="limites.atrasoMinimo.max"
+                                  [value]="estado.atrasoMinimo()"
+                                  (input)="aoMudarAtrasoMinimo($event)"
+                                />
+                              </div>
+                              <div class="p">
+                                <label for="gerar-intensidade"
+                                  >Quanto priorizar as atrasadas<br />
+                                  <span class="hint"
+                                    >intensidade <b class="num">{{ estado.intensidadeRotulo() }}</b> de
+                                    {{ limites.intensidade.max }}</span
+                                  ></label
+                                >
+                                <input
+                                  type="range"
+                                  id="gerar-intensidade"
+                                  [min]="limites.intensidade.min"
+                                  [max]="limites.intensidade.max"
+                                  [step]="limites.intensidade.passo"
+                                  [value]="estado.intensidade()"
+                                  aria-describedby="gerar-intensidade-texto"
+                                  (input)="aoMudarIntensidade($event)"
+                                />
+                              </div>
+                              <div class="escala" aria-hidden="true">
+                                <span>suave</span><span>equilibrado</span><span>só as mais atrasadas</span>
+                              </div>
+                              <div class="hint exemplo" id="gerar-intensidade-texto">
+                                Com esta intensidade, uma dezena que não sai há <b>{{ exemplos[0].atraso }}</b> concursos tem
+                                <b>{{ exemplos[0].vezes }}×</b> mais chance de entrar no jogo do que uma que acabou de sair; há
+                                <b>{{ exemplos[1].atraso }}</b> concursos, <b>{{ exemplos[1].vezes }}×</b>; há
+                                <b>{{ exemplos[2].atraso }}</b
+                                >, <b>{{ exemplos[2].vezes }}×</b>. Quanto maior a intensidade, mais os jogos se concentram nas
+                                dezenas mais atrasadas.
+                              </div>
+                            </div>
+                          }
+                          @case ('frequentes') {
+                            <div class="params">
+                              <div class="p">
+                                <label for="gerar-janela">Janela de concursos</label>
+                                <select id="gerar-janela" (change)="aoMudarJanela($event)">
+                                  @for (opcao of estado.opcoesJanela(); track opcao.valor) {
+                                    <option [value]="opcao.valor" [selected]="opcao.valor === estado.janelaFrequencia()">
+                                      {{ opcao.rotulo }}
+                                    </option>
+                                  }
+                                </select>
+                              </div>
+                            </div>
+                          }
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </srt-acordeao-secao>
+
+          <srt-acordeao-secao titulo="Suas dezenas (opcional)" [resumo]="estado.resumoFixas()">
+            <srt-aviso
+              ><b>Você não precisa marcar nada.</b> Deixe em branco e o sistema escolhe todas as dezenas pelo modo selecionado.
+              Marque só se tiver um palpite forte: essas dezenas entram em todos os jogos e o sistema completa as demais.</srt-aviso
+            >
+            <srt-volante
+              [attr.aria-label]="'volante da ' + estado.loteria().nome"
+              [definicao]="estado.loteria()"
+              [limite]="estado.dezenasPorJogo()"
+              [selecionadas]="estado.fixas()"
+              (selecionadasChange)="estado.definirFixas($event)"
+            />
+            <div class="vol-legenda">
+              <span><i class="q"></i>quadrantes Q1–Q4</span><span><i class="f"></i>sua dezena</span>
+            </div>
+          </srt-acordeao-secao>
+
+          @if (estado.regrasVolante().length) {
+            <srt-acordeao-secao titulo="Regras do volante" [resumo]="estado.resumoRegras()">
+              <div class="toggles">
+                @for (regra of estado.regrasVolante(); track regra.id) {
+                  <srt-switch
+                    [id]="'gerar-regra-' + regra.id"
+                    [rotulo]="regra.rotulo"
+                    [ajuda]="regra.ajuda"
+                    [ligado]="estado.regras()[regra.id]"
+                    (ligadoChange)="estado.definirRegra(regra.id, $event)"
+                  />
+                }
+              </div>
+            </srt-acordeao-secao>
+          }
+
+          @if (estado.regrasEstatisticas().length) {
+            <srt-acordeao-secao titulo="Filtros estatísticos" [resumo]="estado.resumoFiltros()">
+              <div class="toggles">
+                @for (regra of estado.regrasEstatisticas(); track regra.id) {
+                  <srt-switch
+                    [id]="'gerar-regra-' + regra.id"
+                    [rotulo]="regra.rotulo"
+                    [ajuda]="regra.ajuda"
+                    [ligado]="estado.regras()[regra.id]"
+                    (ligadoChange)="estado.definirRegra(regra.id, $event)"
+                  />
+                }
+              </div>
+            </srt-acordeao-secao>
+          }
+        </srt-acordeao>
+
+        <div class="acoes">
+          <button type="submit" class="btn primary" [disabled]="!historicoPronto()">Gerar jogos</button>
+          <button type="button" class="btn" (click)="estado.limpar()">Limpar</button>
+        </div>
+        @if (mensagemSemHistorico(); as mensagem) {
+          <p class="hint" role="status" id="gerar-status-historico">{{ mensagem }}</p>
+        }
+      </form>
+
+      <div class="saida">
+        <div class="section-head">
+          <h3 id="gerar-titulo-saida">{{ estado.tituloSaida() }}</h3>
+          <div class="acoes">
+            <button type="button" class="btn sm" id="gerar-copiar" [disabled]="!estado.temJogos()" (click)="copiar()">
+              {{ rotuloCopiar() }}
+            </button>
+            <button
+              type="button"
+              class="btn sm"
+              id="gerar-salvar"
+              [disabled]="!estado.temJogos() || salvando() || jaSalvo()"
+              (click)="salvar()"
+            >
+              {{ jaSalvo() ? 'Salvo' : 'Salvar' }}
+            </button>
+            <button type="button" class="btn sm" id="gerar-exportar" [disabled]="!estado.temJogos()" (click)="exportar()">
+              {{ rotuloExportar() }}
+            </button>
+          </div>
+        </div>
+
+        @if (jaSalvo()) {
+          <p class="hint" role="status" id="gerar-confirmacao-salvo">{{ textoSalvo() }}</p>
+        }
+        @if (erroSalvar(); as erro) {
+          <p class="hint" role="alert">{{ erro }}</p>
+        }
+
+        <div id="gerar-jogos" class="jogos">
+          @if (estado.temJogos()) {
+            @for (jogo of estado.jogos(); track jogo.dezenas.join('-'); let i = $index) {
+              <srt-jogo
+                [indice]="i + 1"
+                [jogo]="jogo"
+                [atrasos]="estado.atrasos()"
+                [fixas]="estado.fixasDaGeracao()"
+                [atrasoEsperado]="estado.atrasoReferencia()"
+              />
+            }
+            @if (estado.faltaramJogos()) {
+              <div class="hint" id="gerar-aviso-incompleto">
+                Só foi possível gerar {{ estado.jogos().length }} de {{ estado.quantidadeSolicitada() }} jogos com estas regras
+                e filtros. Desligue uma regra ou desmarque dezenas do volante para gerar o restante.
+              </div>
+            }
+            <div class="hint legenda-atraso" id="gerar-legenda-atraso">
+              O número pequeno em cada bola é o <b>atraso</b> da dezena: há quantos concursos ela não é sorteada (0 = saiu no
+              último). A média do jogo é a média desses atrasos; o esperado por dezena é
+              {{ estado.atrasoReferencia() }} concursos.
+            </div>
+          } @else if (estado.semJogos()) {
+            <div class="vazio" id="gerar-sem-jogos">
+              Nenhum jogo passou pelas regras e filtros. Desligue uma regra ou desmarque dezenas do volante.
+            </div>
+          } @else {
+            <div class="vazio" id="gerar-vazio">
+              Configure ao lado e clique em <b>Gerar jogos</b>.<br />O número pequeno em cada bola é o atraso atual dela.
+            </div>
+          }
+        </div>
+
+        <srt-aviso
+          ><b>Cada sorteio é independente.</b> Os modos escolhem dezenas de forma sistemática pelo histórico; a chance real de
+          cada jogo não muda. Este app não é afiliado à Caixa Econômica Federal e não realiza apostas.</srt-aviso
+        >
+      </div>
+    </div>
+  </main>
+</ion-content>

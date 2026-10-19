@@ -1,0 +1,106 @@
+<ion-content>
+  <main class="pagina">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{{ loteria().nome }}</p>
+        <h2>Todos os resultados</h2>
+      </div>
+      @if (resumoTexto()) {
+        <p class="muted" data-teste="resumo">{{ resumoTexto() }}</p>
+      }
+    </div>
+
+    @if (temDados()) {
+      <div class="kpis" data-teste="kpis">
+        @for (kpi of kpis(); track kpi.titulo) {
+          <srt-kpi [titulo]="kpi.titulo" [valor]="kpi.valor" [detalhe]="kpi.detalhe" />
+        }
+      </div>
+
+      <div class="grid2">
+        <section class="panel card wide" data-teste="ultimos" aria-labelledby="titulo-ultimos">
+          <div class="head">
+            <div>
+              <h3 id="titulo-ultimos">Resultados</h3>
+              <div class="sub">{{ subtituloTabela() }}</div>
+            </div>
+          </div>
+          <srt-tabela-resultados [concursos]="concursosTabela()" [rotuloPrincipal]="nomePrincipal()" />
+          <nav class="paginacao" aria-label="Paginação dos resultados">
+            <button type="button" class="btn sm" data-teste="pagina-anterior" [disabled]="pagina() === 0" (click)="paginaAnterior()">
+              Anterior
+            </button>
+            <span class="muted num" data-teste="pagina-texto">Página {{ pagina() + 1 }} de {{ totalPaginas() }}</span>
+            <button
+              type="button"
+              class="btn sm"
+              data-teste="pagina-proxima"
+              [disabled]="pagina() >= totalPaginas() - 1"
+              (click)="proximaPagina()"
+            >
+              Próxima
+            </button>
+          </nav>
+        </section>
+
+        <section class="panel card" data-teste="acumulados-ano" aria-labelledby="titulo-acumulados">
+          <div class="head">
+            <div>
+              <h3 id="titulo-acumulados">Acumulados por ano</h3>
+              <div class="sub">concursos sem ganhador do prêmio principal ({{ nomePrincipal() }}) · desde 2016</div>
+            </div>
+          </div>
+          <srt-grafico-colunas [itens]="acumuladosPorAno()" rotuloAria="Acumulados por ano" />
+        </section>
+
+        <section class="panel card" data-teste="ganhadores-ano" aria-labelledby="titulo-ganhadores">
+          <div class="head">
+            <div>
+              <h3 id="titulo-ganhadores">Ganhadores ({{ nomePrincipal() }}) por ano</h3>
+              <div class="sub">apostas premiadas com {{ acertosPrincipal() }} acertos · desde 2016</div>
+            </div>
+          </div>
+          <srt-grafico-colunas [itens]="ganhadoresPorAno()" [rotuloAria]="'Ganhadores (' + nomePrincipal() + ') por ano'" />
+        </section>
+
+        <section class="panel card" data-teste="ganhadores-uf" aria-labelledby="titulo-uf">
+          <div class="head">
+            <div>
+              <h3 id="titulo-uf">Ganhadores do prêmio principal por UF</h3>
+              <div class="sub">histórico · apostas vencedoras, 10 maiores</div>
+            </div>
+          </div>
+          <srt-lista-barras [itens]="ganhadoresPorUf()" />
+        </section>
+
+        <section class="panel card" data-teste="maiores-premios" aria-labelledby="titulo-premios">
+          <div class="head">
+            <div>
+              <h3 id="titulo-premios">Maiores prêmios pagos</h3>
+              <div class="sub">histórico · rateio do prêmio principal ({{ nomePrincipal() }}) por aposta vencedora</div>
+            </div>
+          </div>
+          <srt-lista-barras [itens]="maioresPremios()" />
+        </section>
+      </div>
+
+      <footer class="rodape" data-teste="rodape">
+        @for (nota of notasRodape(); track $index) {
+          <p>{{ nota }}</p>
+        }
+        @if (erro()) {
+          <p>Não foi possível atualizar agora: {{ erro() }}</p>
+        }
+      </footer>
+    } @else if (historico()) {
+      <div class="vazio" role="status" data-teste="sem-concursos">Nenhum concurso disponível.</div>
+    } @else if (erro() && !carregando()) {
+      <div class="vazio" role="alert" data-teste="erro">
+        <p>{{ erro() }}</p>
+        <button type="button" class="btn sm" data-teste="tentar-novamente" (click)="tentarNovamente()">Tentar de novo</button>
+      </div>
+    } @else {
+      <div class="vazio" role="status" data-teste="carregando">Carregando histórico…</div>
+    }
+  </main>
+</ion-content>

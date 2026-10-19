@@ -1,0 +1,45 @@
+/* Layout geral (.pagina, .grid2, .card, .kpis, .legend, .rodape...) vem de styles/utilitarios.scss. */
+
+.duas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+@media (max-width: 520px) {
+  .duas {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Amostras da legenda (o `.legend i` base está nos utilitários). */
+.legend i.s1 {
+  background: var(--s1);
+}
+.legend i.s1.esmaecida {
+  opacity: 0.35;
+}
+.legend i.linha-ref {
+  background: var(--crit);
+  height: 2px;
+  vertical-align: 3px;
+}
+.legend i.seq-100 {
+  background: var(--seq-100);
+}
+.legend i.seq-250 {
+  background: var(--seq-250);
+}
+.legend i.seq-400 {
+  background: var(--seq-400);
+}
+.legend i.seq-550 {
+  background: var(--seq-550);
+}
+.legend i.seq-700 {
+  background: var(--seq-700);
+}
+
+.vazio p {
+  margin-block-end: 12px;
+}

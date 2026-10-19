@@ -1,0 +1,134 @@
+/*
+ * Tokens de tema (fonte única de cores do app).
+ * Origem: docs/prototipo-aprovado-v7.html. Nenhuma cor literal fora deste arquivo
+ * (garantido por src/estilos.spec.ts).
+ *
+ * Cor por jogo: cada loteria tem uma cor base (`LoteriaDefinicao.cor`, vinda da API em runtime).
+ * O app grava essa cor em `--cor-loteria` no <html> (CorLoteriaServico) e este arquivo deriva dela
+ * os tokens de destaque (--accent, --ball, --accent-soft e as tintas de texto). Sem jogo ativo
+ * (tela inicial) vale o neutro `--cor-neutra`.
+ *
+ * Tinta = cor do texto sobre a cor do jogo. O app decide a tinta pela luminância da cor e grava
+ * `data-tinta` (sobre a cor pura, tema claro) e `data-tinta-escuro` (sobre a cor clareada do tema
+ * escuro) no <html>: "clara" = texto claro (--fg-sobre-cor-escura), "escura" = texto escuro
+ * (--fg-sobre-cor-clara).
+ *
+ * Tema escuro: --accent e --ball são a cor do jogo misturada 70% com branco, para manter
+ * contraste contra as superfícies escuras.
+ */
+
+:root {
+  /* Neutro da tela inicial e valor de reserva quando a cor do jogo não é válida */
+  --cor-neutra: #4f6272;
+  --cor-loteria: var(--cor-neutra);
+
+  /* Texto sobre cor escura (branco) e sobre cor clara (quase preto) */
+  --fg-sobre-cor-escura: #ffffff;
+  --fg-sobre-cor-clara: #15201a;
+  /* Tinta padrão do neutro: clara no tema claro, escura no tema escuro (cor clareada) */
+  --tinta-loteria: var(--fg-sobre-cor-escura);
+  --tinta-loteria-no-escuro: var(--fg-sobre-cor-clara);
+
+  --bg: #f5f7f4;
+  --surface: #ffffff;
+  --surface-2: #eef2ee;
+  --fg: #15201a;
+  --muted: #5b6b62;
+  --line: #d9e1db;
+  --accent: var(--cor-loteria);
+  --accent-ink: var(--tinta-loteria);
+  --accent-soft: color-mix(in srgb, var(--cor-loteria) 14%, var(--surface));
+  --ball: var(--cor-loteria);
+  --ball-ink: var(--tinta-loteria);
+  --s1: #2a78d6;
+  --seq-100: #cde2fb;
+  --seq-250: #86b6ef;
+  --seq-400: #3987e5;
+  --seq-550: #1c5cab;
+  --seq-700: #0d366b;
+  --good: #0ca30c;
+  --warn: #fab219;
+  --crit: #d03b3b;
+  --grid: #e3e8e4;
+  --display: 'Bricolage Grotesque', 'Trebuchet MS', sans-serif;
+  --body: 'Source Sans 3', 'Segoe UI', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', 'Consolas', monospace;
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(21, 32, 26, 0.06), 0 6px 18px rgba(21, 32, 26, 0.05);
+}
+
+/* Tintas decididas pelo app a partir da luminância da cor do jogo */
+:root[data-tinta='clara'] {
+  --tinta-loteria: var(--fg-sobre-cor-escura);
+}
+:root[data-tinta='escura'] {
+  --tinta-loteria: var(--fg-sobre-cor-clara);
+}
+:root[data-tinta-escuro='clara'] {
+  --tinta-loteria-no-escuro: var(--fg-sobre-cor-escura);
+}
+:root[data-tinta-escuro='escura'] {
+  --tinta-loteria-no-escuro: var(--fg-sobre-cor-clara);
+}
+
+/* Tema escuro: um só corpo, usado pelo tema do sistema e pelo escolhido à mão. */
+@mixin tema-escuro {
+  --bg: #121715;
+  --surface: #1a211d;
+  --surface-2: #222b26;
+  --fg: #eaf0ec;
+  --muted: #a3b2a9;
+  --line: #2c3630;
+  --accent: color-mix(in srgb, var(--cor-loteria) 70%, white);
+  --accent-ink: var(--tinta-loteria-no-escuro);
+  --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
+  --ball: color-mix(in srgb, var(--cor-loteria) 70%, white);
+  --ball-ink: var(--tinta-loteria-no-escuro);
+  --s1: #3987e5;
+  --seq-100: #1b2a3d;
+  --seq-250: #1c4a80;
+  --seq-400: #2a78d6;
+  --seq-550: #6da7ec;
+  --seq-700: #b7d3f6;
+  --grid: #2a3530;
+  --shadow: none;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    @include tema-escuro;
+  }
+}
+
+:root[data-theme='dark'] {
+  @include tema-escuro;
+}
+
+/*
+ * Variáveis do Ionic apontando para os tokens: os componentes ion-* seguem o tema
+ * (claro, escuro ou do sistema) sem duplicar valores. As referências var() são
+ * resolvidas no uso, então valem para os três modos acima.
+ */
+:root {
+  --ion-font-family: var(--body);
+  --ion-background-color: var(--bg);
+  --ion-text-color: var(--fg);
+  --ion-border-color: var(--line);
+  --ion-color-primary: var(--accent);
+  --ion-color-primary-contrast: var(--accent-ink);
+  --ion-color-primary-shade: var(--accent);
+  --ion-color-primary-tint: var(--accent);
+  --ion-toolbar-background: var(--surface);
+  --ion-toolbar-color: var(--fg);
+  --ion-toolbar-border-color: var(--line);
+  --ion-item-background: var(--surface);
+  --ion-item-color: var(--fg);
+  --ion-card-background: var(--surface);
+  --ion-card-color: var(--fg);
+  --ion-tab-bar-background: var(--surface);
+  --ion-tab-bar-background-focused: var(--surface-2);
+  --ion-tab-bar-border-color: var(--line);
+  --ion-tab-bar-color: var(--muted);
+  --ion-tab-bar-color-selected: var(--accent);
+}

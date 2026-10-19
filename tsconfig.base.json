@@ -1,0 +1,54 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "bundler",
+    "ignoreDeprecations": "6.0",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2022",
+    "module": "esnext",
+    "lib": [
+      "es2022",
+      "dom"
+    ],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "paths": {
+      "@sorteios/ui": [
+        "./libs/ui/src/index.ts"
+      ],
+      "@sorteios/core": [
+        "./libs/core/src/index.ts"
+      ],
+      "@sorteios/contratos": [
+        "./libs/contratos/src/index.ts"
+      ],
+      "@sorteios/loterias/mega-sena": [
+        "./libs/loterias/mega-sena/src/index.ts"
+      ],
+      "@sorteios/loterias/mega-sena/definicao": [
+        "./libs/loterias/mega-sena/src/definicao.ts"
+      ],
+      "@sorteios/contratos/cliente": [
+        "./libs/contratos/src/cliente.ts"
+      ],
+      "@sorteios/loterias/comum": [
+        "./libs/loterias/comum/src/index.ts"
+      ],
+      "@sorteios/loterias/lotomania": [
+        "./libs/loterias/lotomania/src/index.ts"
+      ],
+      "@sorteios/loterias/lotomania/definicao": [
+        "./libs/loterias/lotomania/src/definicao.ts"
+      ]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "tmp"
+  ]
+}

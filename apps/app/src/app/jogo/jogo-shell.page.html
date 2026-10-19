@@ -1,0 +1,33 @@
+<ion-tabs>
+  <!-- Desktop (>= 860 px): barra superior com os links do jogo. Em celular ela some e entra a tab bar. -->
+  <srt-barra-superior slot="top" [jogo]="jogo()" />
+
+  <!-- Celular (< 860 px): Início + as três telas do jogo + tema. -->
+  <ion-tab-bar slot="bottom">
+    <a class="aba-extra" routerLink="/" data-teste="aba-inicio">
+      <ion-icon name="home-outline" />
+      <span>Início</span>
+    </a>
+    <ion-tab-button tab="gerar">
+      <ion-icon name="dice-outline" />
+      <ion-label>Gerar</ion-label>
+    </ion-tab-button>
+    <ion-tab-button tab="resultados">
+      <ion-icon name="list-outline" />
+      <ion-label>Resultados</ion-label>
+    </ion-tab-button>
+    <ion-tab-button tab="estatisticas">
+      <ion-icon name="stats-chart-outline" />
+      <ion-label>Estatísticas</ion-label>
+    </ion-tab-button>
+    <button
+      type="button"
+      class="aba-extra aba-tema"
+      [attr.aria-label]="tema.rotuloAlternar()"
+      (click)="tema.alternar()"
+    >
+      <ion-icon [name]="tema.iconeAlternar()" />
+      <span>Tema</span>
+    </button>
+  </ion-tab-bar>
+</ion-tabs>

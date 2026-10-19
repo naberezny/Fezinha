@@ -1,0 +1,228 @@
+/*
+ * Tela "Gerar jogos": estilos portados do protótipo aprovado (v7).
+ * Classes globais (.panel, .btn, .section-head, .vazio, .hint…) vêm de styles/utilitarios.scss;
+ * aqui ficam só o painel de 2 colunas, os campos do formulário e o acordeão interno dos modos.
+ */
+
+/* Painel: configuração | resultado; vira 1 coluna abaixo de 860 px. */
+.gerador {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  gap: 0;
+}
+.config {
+  padding: 20px;
+  border-right: 1px solid var(--line);
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+.saida {
+  padding: 20px;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  min-width: 0;
+}
+@media (max-width: 860px) {
+  .gerador {
+    grid-template-columns: 1fr;
+  }
+  .config {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+/* Jogo atual (vem da rota): nome, trocar jogo e atalho para todos os resultados */
+.jogo-atual {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+}
+.titulo-jogo {
+  font-family: var(--display);
+  font-size: 17px;
+}
+.titulo-jogo a,
+.ver-resultados {
+  font-size: 13px;
+  font-weight: 600;
+}
+.ver-resultados {
+  margin-left: auto;
+}
+
+/* Campos */
+.field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.field > label {
+  font-weight: 600;
+  font-size: 14px;
+}
+select,
+input[type='number'] {
+  width: 100%;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+}
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.resumo-aposta {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--muted);
+}
+.resumo-aposta b {
+  color: var(--fg);
+}
+.acoes {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.toggles {
+  display: grid;
+  gap: 8px;
+}
+
+/* Modos de geração: só o selecionado fica expandido. */
+.modos {
+  display: grid;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.modo {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 10px;
+  padding: 10px 12px;
+  align-items: start;
+  background: var(--surface);
+}
+.modo + .modo {
+  border-top: 1px solid var(--line);
+}
+.modo.ativo {
+  background: var(--accent-soft);
+}
+.modo input[type='radio'] {
+  accent-color: var(--accent);
+  margin: 3px 0 0;
+}
+.modo .conteudo {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.modo .t {
+  font-weight: 600;
+  cursor: pointer;
+}
+.modo .t .d {
+  font-weight: 400;
+  margin-left: 6px;
+}
+.modo .d {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.modo .corpo {
+  display: grid;
+  gap: 8px;
+}
+.params {
+  display: grid;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+.params .p {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+}
+.params .p input,
+.params .p select {
+  width: 110px;
+  height: 32px;
+}
+.params .p input[type='range'] {
+  width: 140px;
+  height: auto;
+  padding: 0;
+  border: 0;
+  accent-color: var(--accent);
+}
+.params .escala {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: -6px;
+}
+.params .exemplo {
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  line-height: 1.4;
+}
+.params .exemplo b {
+  color: var(--fg);
+}
+
+/* Legenda do volante */
+.vol-legenda {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--muted);
+  align-items: center;
+}
+.vol-legenda i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 5px;
+  vertical-align: -1px;
+}
+.vol-legenda i.q {
+  background: var(--accent);
+  opacity: 0.45;
+}
+.vol-legenda i.f {
+  background: var(--ball);
+}
+
+/* Lista de jogos */
+.jogos {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.legenda-atraso {
+  padding: 4px 2px;
+}
+.legenda-atraso b {
+  color: var(--fg);
+}

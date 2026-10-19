@@ -1,0 +1,8 @@
+/*
+ * Raiz do app. Barra superior e tab bar ficam em navegacao/barra-superior (tela inicial e jogo)
+ * e em jogo/jogo-shell (tab bar do celular).
+ */
+
+ion-app {
+  background: var(--bg);
+}

@@ -1,0 +1,9 @@
+/* Ionic: núcleo, normalização, estrutura e tipografia */
+@use '@ionic/angular/css/core.css';
+@use '@ionic/angular/css/normalize.css';
+@use '@ionic/angular/css/structure.css';
+@use '@ionic/angular/css/typography.css';
+
+/* Tokens de tema (depois do Ionic, para vencer as variáveis dele) e utilitários */
+@use './styles/tokens';
+@use './styles/utilitarios';
