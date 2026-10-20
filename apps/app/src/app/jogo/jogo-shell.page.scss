@@ -18,6 +18,12 @@
   cursor: pointer;
 }
 
+/* Sete itens em 360 px: o padding lateral padrão do Ionic (12 px) empurraria Início e Tema para fora. */
+ion-tab-button {
+  --padding-start: 2px;
+  --padding-end: 2px;
+}
+
 .aba-extra ion-icon {
   font-size: 24px;
 }

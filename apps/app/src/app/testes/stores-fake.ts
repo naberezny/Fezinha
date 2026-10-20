@@ -89,17 +89,20 @@ export class HistoricoStoreFalso extends HistoricoStore {
   }
 }
 
-/** Fake de `JogosSalvosStore` em memória, sem IndexedDB. */
+/** Fake de `JogosSalvosStore` em memória, sem IndexedDB; o teste preenche `jogos` direto quando precisa. */
 export class JogosSalvosStoreFalso extends JogosSalvosStore {
   readonly jogos = signal<JogoSalvo[]>([]);
+  private _proximoId = 1;
 
   async carregar(): Promise<void> {
     /* vazio */
   }
-  async salvar(_jogos: Omit<JogoSalvo, 'id' | 'criadoEm'>[]): Promise<void> {
-    /* não usado */
+  async salvar(jogos: Omit<JogoSalvo, 'id' | 'criadoEm'>[]): Promise<void> {
+    const criadoEm = new Date().toISOString();
+    const novos = jogos.map((j) => ({ ...j, id: `falso-${this._proximoId++}`, criadoEm }));
+    this.jogos.update((atuais) => [...novos, ...atuais]);
   }
-  async remover(_id: string): Promise<void> {
-    /* não usado */
+  async remover(id: string): Promise<void> {
+    this.jogos.update((atuais) => atuais.filter((j) => j.id !== id));
   }
 }

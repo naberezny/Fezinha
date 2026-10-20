@@ -2,7 +2,7 @@
   <!-- Desktop (>= 860 px): barra superior com os links do jogo. Em celular ela some e entra a tab bar. -->
   <srt-barra-superior slot="top" [jogo]="jogo()" />
 
-  <!-- Celular (< 860 px): Início + as três telas do jogo + tema. -->
+  <!-- Celular (< 860 px): Início + as telas do jogo + tema. -->
   <ion-tab-bar slot="bottom">
     <a class="aba-extra" routerLink="/" data-teste="aba-inicio">
       <ion-icon name="home-outline" />
@@ -19,6 +19,10 @@
     <ion-tab-button tab="estatisticas">
       <ion-icon name="stats-chart-outline" />
       <ion-label>Estatísticas</ion-label>
+    </ion-tab-button>
+    <ion-tab-button tab="meus-jogos">
+      <ion-icon name="bookmark-outline" />
+      <ion-label>Meus jogos</ion-label>
     </ion-tab-button>
     <ion-tab-button tab="teste">
       <ion-icon name="flask-outline" />

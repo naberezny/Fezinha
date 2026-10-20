@@ -12,7 +12,7 @@ const NOVO_JOGO = {
 
 describe('JogosSalvosStoreImpl', () => {
   let cache: {
-    listarJogos: jest.Mock;
+    listarTodosJogos: jest.Mock;
     gravarJogos: jest.Mock;
     removerJogo: jest.Mock;
   };
@@ -20,7 +20,7 @@ describe('JogosSalvosStoreImpl', () => {
 
   beforeEach(() => {
     cache = {
-      listarJogos: jest.fn().mockResolvedValue([]),
+      listarTodosJogos: jest.fn().mockResolvedValue([]),
       gravarJogos: jest.fn().mockResolvedValue(undefined),
       removerJogo: jest.fn().mockResolvedValue(undefined),
     };
@@ -30,18 +30,18 @@ describe('JogosSalvosStoreImpl', () => {
     store = TestBed.inject(JogosSalvosStoreImpl);
   });
 
-  it('carregar() publica os jogos do cache, mais recentes primeiro', async () => {
+  it('carregar() publica os jogos de todas as loterias, mais recentes primeiro', async () => {
     // Arrange
     const antigo: JogoSalvo = { ...NOVO_JOGO, id: 'a', criadoEm: '2026-10-01T10:00:00.000Z' };
     const recente: JogoSalvo = { ...NOVO_JOGO, id: 'b', criadoEm: '2026-10-10T10:00:00.000Z' };
-    cache.listarJogos.mockResolvedValue([antigo, recente]);
+    const lotofacil: JogoSalvo = { ...NOVO_JOGO, loteriaId: 'lotofacil', id: 'c', criadoEm: '2026-10-05T10:00:00.000Z' };
+    cache.listarTodosJogos.mockResolvedValue([antigo, recente, lotofacil]);
 
     // Act
     await store.carregar();
 
     // Assert
-    expect(cache.listarJogos).toHaveBeenCalledWith('megasena');
-    expect(store.jogos().map((j) => j.id)).toEqual(['b', 'a']);
+    expect(store.jogos().map((j) => j.id)).toEqual(['b', 'c', 'a']);
   });
 
   it('salvar() gera id e criadoEm, grava e atualiza o signal', async () => {
@@ -65,7 +65,7 @@ describe('JogosSalvosStoreImpl', () => {
   it('salvar() preserva os jogos já existentes', async () => {
     // Arrange
     const existente: JogoSalvo = { ...NOVO_JOGO, id: 'x', criadoEm: '2000-01-01T00:00:00.000Z' };
-    cache.listarJogos.mockResolvedValue([existente]);
+    cache.listarTodosJogos.mockResolvedValue([existente]);
     await store.carregar();
 
     // Act

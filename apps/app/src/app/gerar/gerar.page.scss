@@ -220,6 +220,40 @@ input[type='number'] {
   gap: 10px;
   min-width: 0;
 }
+/* Cada jogo com o botão "Salvar este jogo" ao lado; no celular, embaixo e à direita. */
+.jogo-salvavel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+/* Largura fixa: "Salvo" e "Salvar este jogo" não mudam a largura do cartão ao lado. */
+.salvar-jogo {
+  min-width: 136px;
+}
+.salvar-jogo.salvo:disabled {
+  opacity: 1;
+  color: var(--fg);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  cursor: default;
+}
+@media (max-width: 640px) {
+  .jogo-salvavel {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: end;
+  }
+  .jogo-salvavel srt-jogo {
+    justify-self: stretch;
+  }
+}
+.explicacao-salvar {
+  margin: 0;
+  max-width: 72ch;
+}
+.explicacao-salvar b {
+  color: var(--fg);
+}
 .legenda-atraso {
   padding: 4px 2px;
 }

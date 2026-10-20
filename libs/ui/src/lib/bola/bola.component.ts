@@ -24,6 +24,12 @@ import { formatarDezena } from '@sorteios/core';
       height: 28px;
       font-size: 12px;
     }
+    /* Dezena que não saiu (conferência de um jogo): sem a cor do jogo. */
+    :host(.apagada) {
+      background: var(--surface-2);
+      color: var(--muted);
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
     :host(.fixa) {
       box-shadow:
         0 0 0 2px var(--surface),
@@ -46,6 +52,7 @@ import { formatarDezena } from '@sorteios/core';
   host: {
     '[class.pequena]': 'pequena()',
     '[class.fixa]': 'fixa()',
+    '[class.apagada]': 'apagada()',
     '[attr.title]': 'titulo()',
   },
 })
@@ -53,6 +60,8 @@ export class BolaComponent {
   readonly dezena = input.required<number>();
   readonly pequena = input(false);
   readonly fixa = input(false);
+  /** Mostra a dezena sem a cor do jogo (ex.: não saiu no concurso conferido). */
+  readonly apagada = input(false);
   /** Concursos desde que a dezena saiu pela última vez (0 = saiu no último). Sem valor, não há badge. */
   readonly atraso = input<number>();
 

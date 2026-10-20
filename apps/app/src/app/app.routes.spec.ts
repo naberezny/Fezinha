@@ -9,6 +9,7 @@ import { EstatisticasPage } from './estatisticas/estatisticas.page';
 import { GerarPage } from './gerar/gerar.page';
 import { InicioPage } from './inicio/inicio.page';
 import { JogoShellPage } from './jogo/jogo-shell.page';
+import { MeusJogosPage } from './meus-jogos/meus-jogos.page';
 import { ResultadosPage } from './resultados/resultados.page';
 import { TestePage } from './teste/teste.page';
 import { HistoricoStoreFalso, JogosSalvosStoreFalso } from './testes/stores-fake';
@@ -60,21 +61,22 @@ describe('appRoutes', () => {
       expect(componente).toBe(JogoShellPage);
     });
 
-    it('a casca do jogo abre em "gerar" e tem gerar, resultados, estatisticas e teste como filhas preguiçosas', async () => {
+    it('a casca do jogo abre em "gerar" e tem gerar, resultados, estatisticas, meus-jogos e teste como filhas preguiçosas', async () => {
       // Arrange
       const filhas = rota(':loteria').children ?? [];
 
       // Act
-      const [gerar, resultados, estatisticas, teste] = await Promise.all(
-        ['gerar', 'resultados', 'estatisticas', 'teste'].map((caminho) => (rota(caminho, filhas).loadComponent as CarregarComponente)()),
+      const [gerar, resultados, estatisticas, meusJogos, teste] = await Promise.all(
+        ['gerar', 'resultados', 'estatisticas', 'meus-jogos', 'teste'].map((caminho) => (rota(caminho, filhas).loadComponent as CarregarComponente)()),
       );
 
       // Assert
       expect(rota('', filhas)).toMatchObject({ pathMatch: 'full', redirectTo: 'gerar' });
-      expect(filhas.map((f) => f.path)).toEqual(['', 'gerar', 'resultados', 'estatisticas', 'teste']);
+      expect(filhas.map((f) => f.path)).toEqual(['', 'gerar', 'resultados', 'estatisticas', 'meus-jogos', 'teste']);
       expect(gerar).toBe(GerarPage);
       expect(resultados).toBe(ResultadosPage);
       expect(estatisticas).toBe(EstatisticasPage);
+      expect(meusJogos).toBe(MeusJogosPage);
       expect(teste).toBe(TestePage);
     });
 

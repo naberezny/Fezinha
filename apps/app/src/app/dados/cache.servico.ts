@@ -135,6 +135,16 @@ export class CacheServico {
     }
   }
 
+  /** Jogos salvos de todas as loterias. */
+  async listarTodosJogos(): Promise<JogoSalvo[]> {
+    try {
+      const banco = await this.abrir();
+      return (await banco?.getAll(STORE_JOGOS_SALVOS)) ?? [];
+    } catch {
+      return [];
+    }
+  }
+
   async gravarJogos(jogos: JogoSalvo[]): Promise<void> {
     if (jogos.length === 0) return;
     try {

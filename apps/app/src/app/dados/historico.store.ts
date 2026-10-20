@@ -57,20 +57,28 @@ export const NOME_BANCO_CACHE = 'sorteios-cache';
 export const STORE_HISTORICO = 'historico';
 export const STORE_JOGOS_SALVOS = 'jogos-salvos';
 
-/** Jogo salvo pelo usuário em "Meus jogos". */
+/**
+ * Jogo salvo pelo usuário em "Meus jogos" (IndexedDB, store `jogos-salvos`, chave `id`, índice `loteriaId`).
+ * É conferido com o concurso `concursoBase + 1` (`concursoAlvo` do core) assim que ele estiver no histórico.
+ */
 export interface JogoSalvo {
   id: string;
   loteriaId: string;
+  /** Dezenas na ordem do volante. */
   dezenas: number[];
+  /** Modo de geração (`Estrategia` do core). */
   estrategia: string;
+  /** ISO datetime do salvamento. */
   criadoEm: string;
-  /** Concurso base no momento da geração. */
+  /** Último concurso do histórico no momento da geração. */
   concursoBase: number;
 }
 
-/** Contrato do repositório local de jogos salvos (IndexedDB). */
+/** Contrato do repositório local de jogos salvos (IndexedDB), sem cadastro: os jogos ficam só neste navegador. */
 export abstract class JogosSalvosStore {
+  /** Jogos de todas as loterias, mais recentes primeiro. */
   abstract readonly jogos: Signal<JogoSalvo[]>;
+  /** Lê os jogos salvos neste navegador. */
   abstract carregar(): Promise<void>;
   abstract salvar(jogos: Omit<JogoSalvo, 'id' | 'criadoEm'>[]): Promise<void>;
   abstract remover(id: string): Promise<void>;

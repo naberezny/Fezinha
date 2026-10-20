@@ -664,7 +664,63 @@ describe('GerarPage', () => {
           concursoBase: 3,
         });
         expect(texto('#gerar-confirmacao-salvo')).toBe('5 jogos salvos em Meus jogos');
-        expect(botaoSalvar().textContent?.trim()).toBe('Salvo');
+        expect(botaoSalvar().textContent?.trim()).toBe('Salvos');
+        expect(botaoSalvar().disabled).toBe(true);
+        expect(qa<HTMLButtonElement>('[data-teste="salvar-jogo"]').every((b) => b.disabled)).toBe(true);
+      });
+
+      it('explica que o jogo salvo será conferido no próximo concurso e leva a Meus jogos', async () => {
+        // Act
+        await gerar();
+
+        // Assert
+        expect(texto('#gerar-explicacao-salvar')).toContain('Quando o concurso 4 for sorteado, o app confere o jogo sozinho');
+        expect(q('#gerar-link-meus-jogos')?.getAttribute('href')).toBe('/megasena/meus-jogos');
+      });
+
+      it('"Salvar este jogo" grava só aquele jogo e o marca como salvo', async () => {
+        // Arrange
+        const salvar = jest.spyOn(salvos, 'salvar');
+        await gerar();
+        const segundo = TestBed.inject(GerarEstado).jogos()[1];
+
+        // Act
+        qa<HTMLButtonElement>('[data-teste="salvar-jogo"]')[1].click();
+        await estabilizar(fixture);
+
+        // Assert
+        expect(salvar).toHaveBeenCalledTimes(1);
+        expect(salvar.mock.calls[0][0]).toEqual([
+          { loteriaId: 'megasena', dezenas: segundo.dezenas, estrategia: 'atrasadas', concursoBase: 3 },
+        ]);
+        const botoes = qa<HTMLButtonElement>('[data-teste="salvar-jogo"]');
+        expect(botoes.map((b) => b.textContent?.trim())).toEqual([
+          'Salvar este jogo',
+          'Salvo',
+          'Salvar este jogo',
+          'Salvar este jogo',
+          'Salvar este jogo',
+        ]);
+        expect(botoes[1].disabled).toBe(true);
+        expect(texto('#gerar-confirmacao-salvo')).toBe('1 jogo salvo em Meus jogos');
+        expect(botaoSalvar().textContent?.trim()).toBe('Salvar todos');
+      });
+
+      it('"Salvar todos" depois de um jogo salvo grava só os que faltam', async () => {
+        // Arrange
+        const salvar = jest.spyOn(salvos, 'salvar');
+        await gerar();
+        qa<HTMLButtonElement>('[data-teste="salvar-jogo"]')[0].click();
+        await estabilizar(fixture);
+
+        // Act
+        botaoSalvar().click();
+        await estabilizar(fixture);
+
+        // Assert
+        expect(salvar).toHaveBeenCalledTimes(2);
+        expect(salvar.mock.calls[1][0]).toHaveLength(4);
+        expect(texto('#gerar-confirmacao-salvo')).toBe('5 jogos salvos em Meus jogos');
         expect(botaoSalvar().disabled).toBe(true);
       });
 

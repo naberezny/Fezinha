@@ -1,5 +1,4 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { MEGA_SENA } from '@sorteios/loterias/mega-sena/definicao';
 import { CacheServico } from './cache.servico';
 import { JogosSalvosStore, type JogoSalvo } from './historico.store';
 
@@ -10,7 +9,7 @@ function gerarId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
 }
 
-/** Jogos salvos pelo usuário ("Meus jogos"), persistidos em IndexedDB. */
+/** Jogos salvos pelo usuário ("Meus jogos") de todas as loterias, persistidos em IndexedDB neste navegador. */
 @Injectable()
 export class JogosSalvosStoreImpl extends JogosSalvosStore {
   private readonly _cache = inject(CacheServico);
@@ -19,7 +18,7 @@ export class JogosSalvosStoreImpl extends JogosSalvosStore {
   readonly jogos = this._jogos.asReadonly();
 
   async carregar(): Promise<void> {
-    const salvos = await this._cache.listarJogos(MEGA_SENA.id);
+    const salvos = await this._cache.listarTodosJogos();
     this._jogos.set(this._maisRecentesPrimeiro(salvos));
   }
 

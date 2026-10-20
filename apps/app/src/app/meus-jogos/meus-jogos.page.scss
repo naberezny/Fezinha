@@ -1,0 +1,62 @@
+/* Layout geral (.pagina, .card, .kpis, .vazio...) vem de styles/utilitarios.scss. */
+
+.explicacao {
+  margin-block-end: 18px;
+}
+.explicacao p {
+  max-width: 72ch;
+  margin: 0;
+}
+.distribuicao {
+  margin-block: 10px 0;
+}
+.grupo {
+  display: grid;
+  gap: 10px;
+  margin-block-start: 22px;
+}
+.grupo h3 {
+  margin: 0;
+}
+
+.jogo-salvo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 12px;
+  align-items: center;
+  padding: 12px;
+}
+.jogo-salvo.premiado {
+  border-inline-start: 4px solid var(--accent);
+}
+.bolas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+.info {
+  grid-column: 1;
+  display: grid;
+  gap: 2px;
+}
+.info p {
+  margin: 0;
+}
+.status {
+  font-weight: 600;
+}
+.jogo-salvo > .btn {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+@media (max-width: 640px) {
+  .jogo-salvo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .jogo-salvo > .btn {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: end;
+  }
+}

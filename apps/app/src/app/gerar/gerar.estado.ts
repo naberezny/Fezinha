@@ -222,6 +222,8 @@ export class GerarEstado {
   readonly resultado = this._resultado.asReadonly();
   /** Configuração exata que produziu `resultado` (a tela pode ter mudado depois). */
   readonly configuracaoUsada = this._configuracaoUsada.asReadonly();
+  /** Último concurso do histórico quando `resultado` foi gerado; os jogos salvos são conferidos com o seguinte. */
+  readonly concursoBase = this._concursoBase.asReadonly();
 
   // ---------- Derivados da loteria e do histórico ----------
   /** Atraso esperado por dezena (Mega-Sena: 10; Lotomania: 5). */

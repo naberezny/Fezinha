@@ -1,8 +1,18 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  linkedSignal,
+  signal,
+} from '@angular/core';
 import type { WritableSignal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent } from '@ionic/angular';
-import type { LoteriaDefinicao } from '@sorteios/core';
+import { chaveJogo, concursoAlvo } from '@sorteios/core';
+import type { Jogo, LoteriaDefinicao } from '@sorteios/core';
 import {
   AcordeaoComponent,
   AcordeaoSecaoComponent,
@@ -96,11 +106,20 @@ export class GerarPage implements OnInit {
   protected readonly rotuloExportar = signal('Exportar');
   protected readonly salvando = signal(false);
   protected readonly erroSalvar = signal<string | undefined>(undefined);
-  /** Resultado que já foi salvo (para não duplicar o salvamento e mostrar a confirmação inline). */
-  private readonly resultadoSalvo = signal<unknown>(undefined);
-  protected readonly jaSalvo = computed(
-    () => this.estado.resultado() !== undefined && this.resultadoSalvo() === this.estado.resultado(),
+  /** Chaves (`chaveJogo`) dos jogos da tela já salvos; um novo resultado começa sem nenhum. */
+  private readonly chavesSalvas = linkedSignal<unknown, ReadonlySet<string>>({
+    source: this.estado.resultado,
+    computation: () => new Set(),
+  });
+  protected readonly quantidadeSalva = computed(() => this.chavesSalvas().size);
+  protected readonly todosSalvos = computed(
+    () => this.estado.temJogos() && this.estado.jogos().every((jogo) => this.jogoSalvo(jogo)),
   );
+  /** Concurso em que os jogos da tela serão conferidos depois de salvos ("3.071"). */
+  protected readonly concursoConferenciaTexto = computed(() => {
+    const base = this.estado.concursoBase();
+    return base === undefined ? '' : formatarMilhar(concursoAlvo(base));
+  });
 
   private readonly temporizadores = new Set<ReturnType<typeof setTimeout>>();
 
@@ -148,20 +167,18 @@ export class GerarPage implements OnInit {
     if (copiado) this.piscar(this.rotuloCopiar, 'Copiado', 'Copiar');
   }
 
-  protected async salvar(): Promise<void> {
-    const jogos = this.estado.jogosParaSalvar();
-    const resultado = this.estado.resultado();
-    if (!jogos.length || this.salvando() || this.jaSalvo()) return;
-    this.salvando.set(true);
-    this.erroSalvar.set(undefined);
-    try {
-      await this.jogosSalvosStore.salvar(jogos);
-      this.resultadoSalvo.set(resultado);
-    } catch {
-      this.erroSalvar.set('Não foi possível salvar os jogos. Tente de novo.');
-    } finally {
-      this.salvando.set(false);
-    }
+  protected jogoSalvo(jogo: Jogo): boolean {
+    return this.chavesSalvas().has(chaveJogo(jogo.dezenas));
+  }
+
+  /** Salva todos os jogos da tela que ainda não foram salvos. */
+  protected salvar(): Promise<void> {
+    return this.salvarJogos(this.estado.jogos());
+  }
+
+  /** "Salvar este jogo": salva só um jogo da lista. */
+  protected salvarJogo(jogo: Jogo): Promise<void> {
+    return this.salvarJogos([jogo]);
   }
 
   protected async exportar(): Promise<void> {
@@ -181,8 +198,26 @@ export class GerarPage implements OnInit {
   }
 
   protected textoSalvo(): string {
-    const quantidade = this.estado.jogos().length;
+    const quantidade = this.quantidadeSalva();
     return `${quantidade} jogo${quantidade > 1 ? 's' : ''} salvo${quantidade > 1 ? 's' : ''} em Meus jogos`;
+  }
+
+  private async salvarJogos(jogos: Jogo[]): Promise<void> {
+    const chaves = new Set(jogos.map((jogo) => chaveJogo(jogo.dezenas)).filter((c) => !this.chavesSalvas().has(c)));
+    const registros = this.estado.jogosParaSalvar().filter((j) => chaves.has(chaveJogo(j.dezenas)));
+    if (!registros.length || this.salvando()) return;
+    const resultado = this.estado.resultado();
+    this.salvando.set(true);
+    this.erroSalvar.set(undefined);
+    try {
+      await this.jogosSalvosStore.salvar(registros);
+      // Se outro resultado entrou na tela enquanto gravava, ele começa sem jogos salvos.
+      if (this.estado.resultado() === resultado) this.chavesSalvas.update((atuais) => new Set([...atuais, ...chaves]));
+    } catch {
+      this.erroSalvar.set('Não foi possível salvar os jogos. Tente de novo.');
+    } finally {
+      this.salvando.set(false);
+    }
   }
 
   /** Área de transferência moderna; sem ela (ou se recusar), cai para textarea + execCommand. */

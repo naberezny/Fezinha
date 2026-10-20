@@ -1,0 +1,86 @@
+<ion-content>
+  <main class="pagina">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{{ loteria().nome }}</p>
+        <h2>Meus jogos</h2>
+      </div>
+    </div>
+
+    <section class="panel card explicacao" data-teste="explicacao">
+      <p>
+        Os jogos que você salva na tela
+        <a [routerLink]="['/', loteria().id, 'gerar']">Gerar</a> ficam guardados <b>só neste navegador</b>, sem
+        cadastro. Cada jogo é conferido com o concurso seguinte ao da geração assim que o resultado sai, e o resumo
+        abaixo mede a assertividade dos seus jogos ao longo do tempo. Limpar os dados do navegador apaga os jogos
+        salvos.
+      </p>
+    </section>
+
+    @if (erroRemover(); as erro) {
+      <p class="hint" role="alert">{{ erro }}</p>
+    }
+    @if (itens().length) {
+      <div class="kpis" data-teste="kpis">
+        @for (kpi of kpis(); track kpi.titulo) {
+          <srt-kpi [titulo]="kpi.titulo" [valor]="kpi.valor" [detalhe]="kpi.detalhe" />
+        }
+      </div>
+      @if (assertividade().conferidos) {
+        <p class="hint distribuicao" data-teste="distribuicao">
+          {{ textoDistribuicao() }}
+        </p>
+      }
+      @if (aguardando().length) {
+        <section class="grupo" data-teste="aguardando" aria-labelledby="titulo-aguardando">
+          <h3 id="titulo-aguardando">Aguardando sorteio</h3>
+          @for (item of aguardando(); track item.jogo.id) {
+            <ng-container [ngTemplateOutlet]="linha" [ngTemplateOutletContext]="{ $implicit: item }" />
+          }
+        </section>
+      }
+      @if (conferidos().length) {
+        <section class="grupo" data-teste="conferidos" aria-labelledby="titulo-conferidos">
+          <h3 id="titulo-conferidos">Conferidos</h3>
+          @for (item of conferidos(); track item.jogo.id) {
+            <ng-container [ngTemplateOutlet]="linha" [ngTemplateOutletContext]="{ $implicit: item }" />
+          }
+        </section>
+      }
+    } @else {
+      <div class="vazio" data-teste="vazio">
+        Nenhum jogo da {{ loteria().nome }} salvo neste navegador.<br />
+        Gere jogos em <a [routerLink]="['/', loteria().id, 'gerar']">Gerar</a> e toque em <b>Salvar este jogo</b>.
+      </div>
+    }
+
+    <ng-template #linha let-item>
+      <article class="panel jogo-salvo" data-teste="jogo-salvo" [class.premiado]="item.conferencia?.faixa">
+        <div class="bolas">
+          @for (dezena of item.jogo.dezenas; track dezena) {
+            <srt-bola
+              [dezena]="dezena"
+              [pequena]="item.jogo.dezenas.length > 15"
+              [apagada]="!!item.conferencia && !item.acertos.has(dezena)"
+            />
+          }
+        </div>
+        <div class="info">
+          <p class="status" data-teste="status">{{ item.status }}</p>
+          <p class="hint">
+            Salvo em {{ item.salvoEm }} · modo {{ item.modo }} · {{ item.jogo.dezenas.length }} dezenas
+          </p>
+        </div>
+        <button
+          type="button"
+          class="btn sm"
+          data-teste="remover"
+          [attr.aria-label]="'Remover o jogo salvo em ' + item.salvoEm"
+          (click)="remover(item)"
+        >
+          Remover
+        </button>
+      </article>
+    </ng-template>
+  </main>
+</ion-content>

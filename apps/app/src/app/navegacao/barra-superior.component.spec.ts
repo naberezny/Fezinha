@@ -47,17 +47,18 @@ describe('BarraSuperiorComponent', () => {
       await renderizar({ id: 'lotomania', nome: 'Lotomania' });
     });
 
-    it('mostra o nome do jogo e os links Gerar, Resultados, Estatísticas e Teste dele', () => {
+    it('mostra o nome do jogo e os links Gerar, Resultados, Estatísticas, Meus jogos e Teste dele', () => {
       // Arrange
       const links = Array.from(raiz().querySelectorAll<HTMLAnchorElement>('nav a'));
 
       // Act / Assert
       expect(texto('[data-teste="jogo-nome"]')).toBe('Lotomania');
-      expect(links.map((l) => l.textContent?.trim())).toEqual(['Gerar', 'Resultados', 'Estatísticas', 'Teste']);
+      expect(links.map((l) => l.textContent?.trim())).toEqual(['Gerar', 'Resultados', 'Estatísticas', 'Meus jogos', 'Teste']);
       expect(links.map((l) => l.getAttribute('href'))).toEqual([
         '/lotomania/gerar',
         '/lotomania/resultados',
         '/lotomania/estatisticas',
+        '/lotomania/meus-jogos',
         '/lotomania/teste',
       ]);
     });

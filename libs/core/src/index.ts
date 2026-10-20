@@ -10,3 +10,4 @@ export * from './lib/ritmo';
 export * from './lib/teste-estrategias';
 export * from './lib/acaso';
 export * from './lib/composicao';
+export * from './lib/conferencia';

@@ -31,6 +31,10 @@ export const appRoutes: Route[] = [
         loadComponent: () => import('./estatisticas/estatisticas.page').then((m) => m.EstatisticasPage),
       },
       {
+        path: 'meus-jogos',
+        loadComponent: () => import('./meus-jogos/meus-jogos.page').then((m) => m.MeusJogosPage),
+      },
+      {
         path: 'teste',
         loadComponent: () => import('./teste/teste.page').then((m) => m.TestePage),
       },

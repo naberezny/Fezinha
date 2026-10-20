@@ -272,10 +272,10 @@
               type="button"
               class="btn sm"
               id="gerar-salvar"
-              [disabled]="!estado.temJogos() || salvando() || jaSalvo()"
+              [disabled]="!estado.temJogos() || salvando() || todosSalvos()"
               (click)="salvar()"
             >
-              {{ jaSalvo() ? 'Salvo' : 'Salvar' }}
+              {{ todosSalvos() ? 'Salvos' : 'Salvar todos' }}
             </button>
             <button type="button" class="btn sm" id="gerar-exportar" [disabled]="!estado.temJogos()" (click)="exportar()">
               {{ rotuloExportar() }}
@@ -283,7 +283,15 @@
           </div>
         </div>
 
-        @if (jaSalvo()) {
+        @if (estado.temJogos()) {
+          <p class="hint explicacao-salvar" id="gerar-explicacao-salvar">
+            <b>Vai apostar? Salve o jogo.</b> Ele fica guardado só neste navegador, sem cadastro. Quando o concurso
+            {{ concursoConferenciaTexto() }} for sorteado, o app confere o jogo sozinho e mostra em
+            <a [routerLink]="['/', estado.loteria().id, 'meus-jogos']" id="gerar-link-meus-jogos">Meus jogos</a> quantas
+            dezenas você acertou e a assertividade dos seus jogos ao longo do tempo.
+          </p>
+        }
+        @if (quantidadeSalva()) {
           <p class="hint" role="status" id="gerar-confirmacao-salvo">{{ textoSalvo() }}</p>
         }
         @if (erroSalvar(); as erro) {
@@ -293,14 +301,28 @@
         <div id="gerar-jogos" class="jogos">
           @if (estado.temJogos()) {
             @for (jogo of estado.jogos(); track jogo.dezenas.join('-'); let i = $index) {
-              <srt-jogo
-                [indice]="i + 1"
-                [jogo]="jogo"
-                [atrasos]="estado.atrasos()"
-                [fixas]="estado.fixasDaGeracao()"
-                [atrasoEsperado]="estado.atrasoReferencia()"
-                [mostrarQuadrantes]="estado.usaQuadrantes()"
-              />
+              @let salvo = jogoSalvo(jogo);
+              <div class="jogo-salvavel">
+                <srt-jogo
+                  [indice]="i + 1"
+                  [jogo]="jogo"
+                  [atrasos]="estado.atrasos()"
+                  [fixas]="estado.fixasDaGeracao()"
+                  [atrasoEsperado]="estado.atrasoReferencia()"
+                  [mostrarQuadrantes]="estado.usaQuadrantes()"
+                />
+                <button
+                  type="button"
+                  class="btn sm salvar-jogo"
+                  data-teste="salvar-jogo"
+                  [class.salvo]="salvo"
+                  [attr.aria-label]="salvo ? 'Jogo ' + (i + 1) + ' salvo' : 'Salvar o jogo ' + (i + 1)"
+                  [disabled]="salvo || salvando()"
+                  (click)="salvarJogo(jogo)"
+                >
+                  {{ salvo ? 'Salvo' : 'Salvar este jogo' }}
+                </button>
+              </div>
             }
             @if (estado.faltaramJogos()) {
               <div class="hint" id="gerar-aviso-incompleto">
