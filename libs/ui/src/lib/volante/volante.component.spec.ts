@@ -149,4 +149,31 @@ describe('VolanteComponent', () => {
     expect(botao(2).getAttribute('aria-pressed')).toBe('true');
     expect(botao(3).getAttribute('aria-pressed')).toBe('false');
   });
+
+  it('as divisórias ficam depois da metade das colunas e linhas (grade 10 × 6: 5 e 3)', () => {
+    const host = fixture.nativeElement as HTMLElement;
+
+    expect(host.style.getPropertyValue('--colunas')).toBe('10');
+    expect(host.style.getPropertyValue('--linhas')).toBe('6');
+    expect(host.style.getPropertyValue('--antes-colunas')).toBe('5');
+    expect(host.style.getPropertyValue('--antes-linhas')).toBe('3');
+  });
+
+  it('em grade ímpar (5 × 5) as divisórias vão no vão depois da 3ª coluna e da 3ª linha, como os quadrantes do core', async () => {
+    fixture.componentRef.setInput('definicao', {
+      ...megaSena,
+      universo: 25,
+      sorteadas: 15,
+      volante: { colunas: 5, linhas: 5 },
+    });
+    await fixture.whenStable();
+    const host = fixture.nativeElement as HTMLElement;
+
+    expect(host.style.getPropertyValue('--antes-colunas')).toBe('3');
+    expect(host.style.getPropertyValue('--antes-linhas')).toBe('3');
+    expect(botao(3).getAttribute('aria-label')).toBe('dezena 03, quadrante 1');
+    expect(botao(4).getAttribute('aria-label')).toBe('dezena 04, quadrante 2');
+    expect(botao(13).getAttribute('aria-label')).toBe('dezena 13, quadrante 1');
+    expect(botao(18).getAttribute('aria-label')).toBe('dezena 18, quadrante 3');
+  });
 });
