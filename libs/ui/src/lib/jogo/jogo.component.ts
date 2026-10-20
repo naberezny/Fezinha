@@ -18,8 +18,10 @@ import { BolaComponent } from '../bola/bola.component';
         sem sair há <b class="num">{{ atrasoMedioTexto() }}</b> concursos, em média
       </span>
       <span>
-        <b class="num">{{ jogo().pares }}</b> pares · <b class="num">{{ impares() }}</b> ímpares ·
-        <b class="num">{{ jogo().quadrantes }}</b> quadrantes
+        <b class="num">{{ jogo().pares }}</b> pares · <b class="num">{{ impares() }}</b> ímpares
+        @if (mostrarQuadrantes()) {
+          · <b class="num">{{ jogo().quadrantes }}</b> quadrantes
+        }
       </span>
     </div>
   `,
@@ -100,6 +102,8 @@ export class JogoComponent {
   readonly atrasos = input<Record<number, number>>({});
   /** Dezenas escolhidas pelo usuário, destacadas com o anel de "fixa". */
   readonly fixas = input<number[]>([]);
+  /** Mostra quantos quadrantes o jogo cobre; desligue quando o jogo não usa quadrantes (Lotofácil). */
+  readonly mostrarQuadrantes = input(true);
   /** Atraso esperado por dezena, citado na explicação do atraso médio (Mega-Sena: 10). */
   readonly atrasoEsperado = input(10);
 

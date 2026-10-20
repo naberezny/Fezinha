@@ -255,6 +255,8 @@ export class GerarEstado {
 
   /** Ids dos filtros que se aplicam à loteria e ao tamanho de jogo atual, na ordem de `filtrosPadrao()`. */
   readonly regrasAplicaveis = computed(() => this.idsAplicaveis(this.loteria(), this.dezenasPorJogo()));
+  /** O jogo usa quadrantes (oferece a regra)? Sem ela, volante e jogos não mostram quadrantes (Lotofácil). */
+  readonly usaQuadrantes = computed(() => this.loteria().regrasDisponiveis.includes('quadrantes'));
 
   /**
    * Regras que a tela mostra: oferecidas pela loteria E aplicáveis ao tamanho de jogo atual. A lista se recompõe quando

@@ -198,7 +198,7 @@
   (`universo / sorteadas`) era exibido cru e era inteiro nas outras loterias; na Lotofácil é 25/15 = 1,666…
   Agora `formatarAtraso` (core) formata a exibição ("1,7") e o atraso mínimo começa no inteiro mais próximo (2).
   Sorteios: segunda a sexta e mais um no fim de semana (sábado ou domingo desde junho/2026), por isso `diasSorteio` = 0..6.
-  Regras: `quadrantes`, `historico`, `pares`; fora `consecutivas` (só 13% dos 3.807 resultados reais passam) e `linhas` (2,8%).
+  Regras: `quadrantes`, `historico`, `pares`; fora `consecutivas` (só 13% dos 3.807 resultados reais passam) e `linhas` (2,8%). Revisto em 19/10/2026: nenhuma regra (ver checklist K9).
 
 ---
 

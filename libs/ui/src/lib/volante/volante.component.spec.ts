@@ -176,4 +176,15 @@ describe('VolanteComponent', () => {
     expect(botao(13).getAttribute('aria-label')).toBe('dezena 13, quadrante 1');
     expect(botao(18).getAttribute('aria-label')).toBe('dezena 18, quadrante 3');
   });
+
+  it('com quadrantes desligados não há divisórias nem quadrante no aria-label', async () => {
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.classList.contains('com-quadrantes')).toBe(true);
+
+    fixture.componentRef.setInput('quadrantes', false);
+    await fixture.whenStable();
+
+    expect(host.classList.contains('com-quadrantes')).toBe(false);
+    expect(botao(7).getAttribute('aria-label')).toBe('dezena 07');
+  });
 });

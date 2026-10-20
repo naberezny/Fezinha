@@ -47,4 +47,13 @@ describe('JogoComponent', () => {
 
     expect(resumo).toBe('4 pares · 2 ímpares · 4 quadrantes');
   });
+
+  it('sem quadrantes no jogo (Lotofácil), o resumo mostra só pares e ímpares', async () => {
+    fixture.componentRef.setInput('mostrarQuadrantes', false);
+    await fixture.whenStable();
+
+    const resumo = host().querySelectorAll('.meta span')[1].textContent?.replace(/\s+/g, ' ').trim();
+
+    expect(resumo).toBe('4 pares · 2 ímpares');
+  });
 });

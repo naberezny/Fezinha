@@ -79,11 +79,7 @@ describe('API de loterias (HTTP)', () => {
         diasSorteio: [0, 1, 2, 3, 4, 5, 6],
       });
       expect(resposta.body[2].faixas).toHaveLength(5);
-      expect(resposta.body[2].regrasDisponiveis).toEqual([
-        'quadrantes',
-        'historico',
-        'pares',
-      ]);
+      expect(resposta.body[2].regrasDisponiveis).toEqual([]);
     });
   });
 

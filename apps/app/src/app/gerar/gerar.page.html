@@ -167,12 +167,16 @@
             <srt-volante
               [attr.aria-label]="'volante da ' + estado.loteria().nome"
               [definicao]="estado.loteria()"
+              [quadrantes]="estado.usaQuadrantes()"
               [limite]="estado.dezenasPorJogo()"
               [selecionadas]="estado.fixas()"
               (selecionadasChange)="estado.definirFixas($event)"
             />
             <div class="vol-legenda">
-              <span><i class="q"></i>quadrantes Q1–Q4</span><span><i class="f"></i>sua dezena</span>
+              @if (estado.usaQuadrantes()) {
+                <span><i class="q"></i>quadrantes Q1–Q4</span>
+              }
+              <span><i class="f"></i>sua dezena</span>
             </div>
           </srt-acordeao-secao>
 
@@ -256,6 +260,7 @@
                 [atrasos]="estado.atrasos()"
                 [fixas]="estado.fixasDaGeracao()"
                 [atrasoEsperado]="estado.atrasoReferencia()"
+                [mostrarQuadrantes]="estado.usaQuadrantes()"
               />
             }
             @if (estado.faltaramJogos()) {

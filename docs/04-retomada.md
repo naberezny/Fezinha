@@ -7,10 +7,10 @@
 - Navegação: `/` (cartões por jogo) → `/:loteria/gerar|resultados|estatisticas|teste`; cor por jogo (`cor` na definição); filtros ocultos quando não aplicáveis.
 - Artefato https://claude.ai/artifact/RxVZTVtRah4u8dypaeJ8nD = app real em build estática (`pnpm nx build app --configuration=artefato` + `tools/artefato/montar.py`), versão 9 (ainda sem a Lotofácil).
 - Ritmo das dezenas (tabela em Estatísticas) e aba Teste das estratégias (19/10): nos resultados reais nenhuma estratégia, incluindo o "ritmo" de cada dezena, sai do acaso. Detalhes: `docs/03-checklist-testes.md` seção K e seções 4.2, 4.5 e 6.6 da especificação.
-- Último gate (19/10, Jest direto): 844 testes verdes (api 181, app 303, core 186, ui 92, mega-sena 45, lotomania 16, lotofacil 10, comum 6, contratos 5); lint sem erros; build de api e app ok.
+- Último gate (19/10, Jest direto): 846 testes verdes (api 181, app 303, core 186, ui 94, mega-sena 45, lotomania 16, lotofacil 10, comum 6, contratos 5); lint sem erros; build de api e app ok.
 
 ## Decisões fechadas
-Ver `docs/01-especificacao.md` (D1–D12) e `docs/03-checklist-testes.md` (seções G, H, I, J, K). Chance "1 em N" arredondada (Lotomania 11.372.636; Caixa publica 11.372.635 truncado). Regra "máx. 3 por linha" inaplicável quando dezenas > 3 × linhas. Lotofácil: regras `quadrantes`, `historico`, `pares` (sem `consecutivas` e `linhas`, que reprovam 87% e 97% dos resultados reais).
+Ver `docs/01-especificacao.md` (D1–D12) e `docs/03-checklist-testes.md` (seções G, H, I, J, K). Chance "1 em N" arredondada (Lotomania 11.372.636; Caixa publica 11.372.635 truncado). Regra "máx. 3 por linha" inaplicável quando dezenas > 3 × linhas. Lotofácil: nenhuma regra nem filtro (desde 19/10: `quadrantes`, `historico` e `pares` juntos descartavam só 3,5% dos jogos de 15 dezenas e <1% dos de 17+; `consecutivas` e `linhas` reprovam 87% e 97% dos resultados reais); sem regra `quadrantes`, o volante não mostra divisórias e o jogo não mostra a contagem de quadrantes.
 
 ## Pendências (dono: João decide)
 - I6: tela inicial só mostra o último concurso da loteria ativa; proposta: endpoint `GET /loterias/resumo`.

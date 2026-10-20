@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, model } from '@angular/core';
 import { compararDezenas, dezenasDe, formatarDezena, quadrante, type LoteriaDefinicao } from '@sorteios/core';
 
-/** Volante da loteria: grade colunas × linhas de dezenas marcáveis, com divisórias dos quadrantes. */
+/** Volante da loteria: grade colunas × linhas de dezenas marcáveis, com divisórias dos quadrantes (opcionais). */
 @Component({
   selector: 'srt-volante',
   template: `
@@ -9,7 +9,7 @@ import { compararDezenas, dezenasDe, formatarDezena, quadrante, type LoteriaDefi
       <button
         type="button"
         [attr.aria-pressed]="marcadas().has(dezena) ? 'true' : 'false'"
-        [attr.aria-label]="'dezena ' + rotulo(dezena) + ', quadrante ' + (quadranteDe(dezena) + 1)"
+        [attr.aria-label]="'dezena ' + rotulo(dezena) + (quadrantes() ? ', quadrante ' + (quadranteDe(dezena) + 1) : '')"
         (click)="alternar(dezena)"
       >
         {{ rotulo(dezena) }}
@@ -47,8 +47,8 @@ import { compararDezenas, dezenasDe, formatarDezena, quadrante, type LoteriaDefi
       color: var(--ball-ink);
       border-color: var(--ball);
     }
-    :host::before,
-    :host::after {
+    :host(.com-quadrantes)::before,
+    :host(.com-quadrantes)::after {
       content: '';
       position: absolute;
       background: var(--accent);
@@ -84,6 +84,7 @@ import { compararDezenas, dezenasDe, formatarDezena, quadrante, type LoteriaDefi
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     role: 'group',
+    '[class.com-quadrantes]': 'quadrantes()',
     '[style.grid-template-columns]': 'colunasCss()',
     '[style.--colunas]': 'definicao().volante.colunas',
     '[style.--linhas]': 'definicao().volante.linhas',
@@ -93,6 +94,8 @@ import { compararDezenas, dezenasDe, formatarDezena, quadrante, type LoteriaDefi
 })
 export class VolanteComponent {
   readonly definicao = input.required<LoteriaDefinicao>();
+  /** Mostra as divisórias dos quadrantes (e o quadrante no aria-label). Desligue quando o jogo não usa quadrantes. */
+  readonly quadrantes = input(true);
   /** Máximo de dezenas marcadas; cliques em dezenas livres são ignorados ao atingi-lo. */
   readonly limite = input.required<number>();
   /** Dezenas marcadas, na ordem do volante (o 00 da Lotomania por último). */
@@ -104,7 +107,7 @@ export class VolanteComponent {
   protected readonly colunasCss = computed(() => `repeat(${this.definicao().volante.colunas}, minmax(0, 1fr))`);
   /**
    * Quantas colunas e linhas ficam antes das divisórias. Segue `quadrante()` do core: com número ímpar, a coluna e a
-   * linha do meio pertencem aos quadrantes de cima e da esquerda (Lotofácil 5 × 5: divisórias depois da 3ª coluna e
+   * linha do meio pertencem aos quadrantes de cima e da esquerda (grade 5 × 5: divisórias depois da 3ª coluna e
    * da 3ª linha, não no meio delas).
    */
   protected readonly divisoria = computed(() => {
