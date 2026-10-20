@@ -91,3 +91,39 @@
 .nota-ritmo {
   margin-block-start: 12px;
 }
+
+/* Composição dos concursos. */
+.tabela-composicao table {
+  min-width: 640px;
+}
+.tabela-composicao td.num {
+  white-space: nowrap;
+}
+.tabela-composicao .dir {
+  text-align: right;
+}
+.tabela-composicao .descricao {
+  font-size: 12px;
+}
+.pill {
+  white-space: nowrap;
+}
+.pill.dentro {
+  color: var(--fg);
+}
+.pill.acima,
+.pill.abaixo {
+  color: var(--crit);
+  border-color: var(--crit);
+}
+.distribuicao-head {
+  margin-block-start: 18px;
+}
+.distribuicao-head h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.nota-composicao {
+  margin-block-start: 12px;
+}

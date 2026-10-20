@@ -22,6 +22,7 @@ import {
   INTENSIDADE_MIN,
   INTENSIDADE_PASSO,
   MODOS_GERACAO,
+  PROPORCAO_FRIAS_PASSO,
   QUANTIDADE_JOGOS_MAX,
   QUANTIDADE_JOGOS_MIN,
   formatarMilhar,
@@ -68,6 +69,7 @@ export class GerarPage implements OnInit {
     quantidade: { min: QUANTIDADE_JOGOS_MIN, max: QUANTIDADE_JOGOS_MAX },
     atrasoMinimo: { min: ATRASO_MINIMO_MIN, max: ATRASO_MINIMO_MAX },
     intensidade: { min: INTENSIDADE_MIN, max: INTENSIDADE_MAX, passo: INTENSIDADE_PASSO },
+    proporcaoFrias: { min: 0, max: 1, passo: PROPORCAO_FRIAS_PASSO },
   };
 
   // ---------- Histórico ----------
@@ -134,6 +136,10 @@ export class GerarPage implements OnInit {
 
   protected aoMudarIntensidade(evento: Event): void {
     this.estado.definirIntensidade((evento.target as HTMLInputElement).valueAsNumber);
+  }
+
+  protected aoMudarProporcaoFrias(evento: Event): void {
+    this.estado.definirProporcaoFrias((evento.target as HTMLInputElement).valueAsNumber);
   }
 
   // ---------- Saída ----------

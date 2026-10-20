@@ -15,6 +15,23 @@ function indexarPorDezena(lista: EstatisticaDezena[], def: LoteriaDefinicao, nom
   return indice;
 }
 
+/** Proporção padrão do modo misto: metade do peso para cada extremo. */
+export const PROPORCAO_FRIAS_PADRAO = 0.5;
+
+function proporcaoFriasDe(config: ConfiguracaoGeracao): number {
+  const proporcao = config.mista?.proporcaoFrias ?? PROPORCAO_FRIAS_PADRAO;
+  return Math.min(Math.max(proporcao, 0), 1);
+}
+
+/**
+ * Peso do modo misto para uma dezena na `posicao` (0 = a que menos saiu na janela, 1 = a que mais saiu):
+ * 0,05 + (1 − p)·posição² + p·(1 − posição)², com p = proporção para as frias. Vai de 0,05 a 1,05, como antes.
+ * p = 0 favorece só as quentes; p = 1, só as frias; p = 0,5 favorece os dois extremos e tira peso das do meio.
+ */
+export function pesoMista(posicao: number, proporcaoFrias: number): number {
+  return 0.05 + (1 - proporcaoFrias) * posicao * posicao + proporcaoFrias * (1 - posicao) * (1 - posicao);
+}
+
 /** Peso de sorteio por dezena válida (`primeiraDezena..ultimaDezena`). Ver especificação 4.3. */
 export function calcularPesos(
   estatisticasAtraso: EstatisticaDezena[],
@@ -27,13 +44,15 @@ export function calcularPesos(
   const esperado = atrasoEsperado(def);
   const pesos = new Map<number, number>();
 
-  let maiorAtraso = 0;
   let maiorFrequencia = 0;
+  let menorFrequencia = Infinity;
   const dezenas = dezenasDe(def);
   for (const dezena of dezenas) {
-    maiorAtraso = Math.max(maiorAtraso, porAtraso.get(dezena)!.atraso);
-    maiorFrequencia = Math.max(maiorFrequencia, porFrequencia.get(dezena)!.frequencia);
+    const frequencia = porFrequencia.get(dezena)!.frequencia;
+    maiorFrequencia = Math.max(maiorFrequencia, frequencia);
+    menorFrequencia = Math.min(menorFrequencia, frequencia);
   }
+  const proporcaoFrias = proporcaoFriasDe(config);
 
   for (const dezena of dezenas) {
     const atraso = porAtraso.get(dezena)!.atraso;
@@ -48,9 +67,10 @@ export function calcularPesos(
         peso = 1 + frequencia;
         break;
       case 'mista': {
-        const atrasoNormalizado = maiorAtraso > 0 ? atraso / maiorAtraso : 0;
-        const frequenciaNormalizada = maiorFrequencia > 0 ? frequencia / maiorFrequencia : 0;
-        peso = Math.sqrt(atrasoNormalizado * frequenciaNormalizada) + 0.05;
+        // Posição da dezena entre a menos (0) e a mais frequente (1) da janela; todas iguais = meio.
+        const posicao =
+          maiorFrequencia > menorFrequencia ? (frequencia - menorFrequencia) / (maiorFrequencia - menorFrequencia) : 0.5;
+        peso = pesoMista(posicao, proporcaoFrias);
         break;
       }
       case 'aleatorio':

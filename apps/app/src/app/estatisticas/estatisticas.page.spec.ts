@@ -3,7 +3,14 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { provideIonicAngular } from '@ionic/angular';
-import { calcularEstatisticas, type Concurso, type Historico, type LoteriaDefinicao } from '@sorteios/core';
+import {
+  calcularComposicao,
+  calcularEstatisticas,
+  vereditoDe,
+  type Concurso,
+  type Historico,
+  type LoteriaDefinicao,
+} from '@sorteios/core';
 import { MEGA_SENA } from '@sorteios/loterias/mega-sena';
 import {
   GraficoBarrasHorizontaisComponent,
@@ -446,7 +453,7 @@ describe('EstatisticasPage', () => {
       const fixture = await renderizar();
 
       // Assert
-      const itens = componente(fixture, GraficoColunasComponent, 0).itens();
+      const itens = componente(fixture, GraficoColunasComponent, 1).itens();
       expect(itens.map((i) => i.rotulo)).toEqual(['0p', '1p', '2p', '3p', '4p', '5p', '6p']);
       expect(itens.map((i) => i.valor)).toEqual(esperado);
       expect(itens[3].dica).toContain('3 pares / 3 ímpares');
@@ -465,7 +472,7 @@ describe('EstatisticasPage', () => {
       const fixture = await renderizar();
 
       // Assert
-      const itens = componente(fixture, GraficoColunasComponent, 1).itens();
+      const itens = componente(fixture, GraficoColunasComponent, 2).itens();
       expect(itens.map((i) => i.rotulo)).toEqual(faixas.map(String));
       expect(itens.map((i) => i.valor)).toEqual(faixas.map((f) => esperado.get(f)));
       expect(itens[0].dica).toContain(`soma entre ${faixas[0]} e ${faixas[0] + 19}`);
@@ -474,13 +481,13 @@ describe('EstatisticasPage', () => {
     it('pares e soma não mudam com o filtro de período (histórico completo)', async () => {
       // Arrange
       const fixture = await renderizar();
-      const pares = componente(fixture, GraficoColunasComponent, 0).itens();
+      const pares = componente(fixture, GraficoColunasComponent, 1).itens();
 
       // Act
       await escolher(fixture, 'Últimos 100');
 
       // Assert
-      expect(componente(fixture, GraficoColunasComponent, 0).itens()).toEqual(pares);
+      expect(componente(fixture, GraficoColunasComponent, 1).itens()).toEqual(pares);
     });
 
     describe('ritmo de cada dezena', () => {
@@ -546,6 +553,65 @@ describe('EstatisticasPage', () => {
         expect(texto(nota)).toContain('cada dezena sai em média a cada 10,0 concursos');
         expect(texto(nota)).toContain('a mesma chance de sair (10%)');
         expect(nota?.querySelector('a')?.getAttribute('href')).toMatch(/teste$/);
+      });
+    });
+
+    describe('composição dos concursos', () => {
+      const linhas = (fixture: ComponentFixture<EstatisticasPage>) =>
+        Array.from(raiz(fixture).querySelectorAll('[data-teste="composicao"] tbody tr')).map((tr) => ({
+          grupo: tr.getAttribute('data-grupo'),
+          celulas: Array.from(tr.querySelectorAll('td')).map((td) => texto(td)),
+        }));
+
+      it('com os últimos 50 (padrão), mostra os 4 grupos com os números do core e o acaso', async () => {
+        // Arrange
+        const esperado = calcularComposicao(historico, { tipo: 'ultimos', quantidade: 50 });
+
+        // Act
+        const fixture = await renderizar();
+
+        // Assert
+        const tabela = linhas(fixture);
+        expect(tabela.map((l) => l.grupo)).toEqual(['quentes', 'frias', 'atrasadas', 'repetidas']);
+        expect(tabela[0].celulas[0]).toContain('as 20 que mais saíram nos 50 concursos anteriores');
+        expect(tabela[0].celulas[2]).toBe('2,00 (33,3%)');
+        expect(tabela[3].celulas[2]).toBe('0,60 (10%)');
+        const quentes = esperado.grupos[0];
+        expect(tabela[0].celulas[1]).toContain(quentes.mediaObservada.toFixed(2).replace('.', ','));
+        const resultadoTexto = { dentro: 'dentro do acaso', acima: 'acima do acaso', abaixo: 'abaixo do acaso' };
+        expect(tabela[0].celulas[5]).toBe(resultadoTexto[vereditoDe(quentes.mediaObservada, quentes.margem, quentes.mediaAcaso)]);
+      });
+
+      it('o gráfico mostra a distribuição do grupo escolhido, com o acaso como referência', async () => {
+        // Arrange
+        const fixture = await renderizar();
+        const esperado = calcularComposicao(historico, { tipo: 'ultimos', quantidade: 50 });
+        const grafico = () => componente(fixture, GraficoColunasComponent, 0).itens();
+
+        // Act
+        const atrasadas = grafico();
+        await escolher(fixture, 'Repetidas');
+
+        // Assert
+        const grupo = (id: string) => esperado.grupos.find((g) => g.grupo === id);
+        expect(atrasadas.map((i) => i.valor)).toEqual(grupo('atrasadas')?.distribuicaoObservada);
+        expect(atrasadas.map((i) => i.referencia)).toEqual(grupo('atrasadas')?.distribuicaoAcaso);
+        expect(grafico().map((i) => i.valor)).toEqual(grupo('repetidas')?.distribuicaoObservada);
+        expect(texto(raiz(fixture).querySelector('[data-teste="composicao"] h4'))).toBe(
+          'Concursos por quantidade de repetidas',
+        );
+      });
+
+      it('segue o filtro de período e avisa quando nenhum concurso tem 50 anteriores', async () => {
+        // Arrange
+        const fixture = await renderizar();
+
+        // Act
+        await escolher(fixture, '2025');
+
+        // Assert: os concursos de 2025 são os primeiros do histórico sintético (sem 50 anteriores).
+        expect(raiz(fixture).querySelector('[data-teste="composicao"] table')).toBeNull();
+        expect(texto(raiz(fixture).querySelector('[data-teste="composicao-vazia"]'))).toContain('50 concursos anteriores');
       });
     });
   });

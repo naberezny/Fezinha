@@ -179,13 +179,14 @@ describe('pesos com a dezena 00', () => {
     expect(pesos.get(0)).toBe(1);
   });
 
-  it('a dezena 00 participa do atraso máximo e da normalização da estratégia mista', () => {
+  it('a dezena 00 participa da normalização de frequência da estratégia mista', () => {
     const estatisticas = lista();
 
     const pesos = calcularPesos(estatisticas, estatisticas, configuracao({ estrategia: 'mista' }), def);
 
-    // dezena 0: atraso 2, frequência 1; maiorAtraso = 3 (nunca saiu), maiorFrequencia = 3 (dezenas 2..19)
-    expect(pesos.get(0)).toBeCloseTo(Math.sqrt((2 / 3) * (1 / 3)) + 0.05, 12);
+    // dezena 0: frequência 1, entre a menor (0, dezenas que nunca saíram) e a maior (3, dezenas 2..19): posição 1/3.
+    // Proporção padrão 0,5: 0,05 + 0,5 · (1/3)² + 0,5 · (2/3)².
+    expect(pesos.get(0)).toBeCloseTo(0.05 + 0.5 / 9 + 0.5 * (4 / 9), 12);
   });
 
   it('lança erro citando a dezena 00 quando falta nas estatísticas', () => {

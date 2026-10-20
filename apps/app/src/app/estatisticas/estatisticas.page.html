@@ -121,6 +121,74 @@
           </p>
         </section>
 
+        <section class="panel card wide" data-teste="composicao" aria-labelledby="titulo-composicao">
+          <div class="head">
+            <div>
+              <h3 id="titulo-composicao">Composição dos concursos</h3>
+              <div class="sub">
+                {{ textoPeriodo() }} · quantas sorteadas de cada grupo saíram por concurso, com os grupos montados na
+                véspera
+              </div>
+            </div>
+          </div>
+          @if (concursosComposicao() > 0) {
+            <div class="tbl-wrap tabela-composicao">
+              <table aria-label="Composição dos concursos comparada ao acaso">
+                <thead>
+                  <tr>
+                    <th scope="col">Grupo</th>
+                    <th scope="col" class="dir">Por concurso</th>
+                    <th scope="col" class="dir">Pelo acaso</th>
+                    <th scope="col" class="dir">Diferença</th>
+                    <th scope="col" class="dir">Margem de erro</th>
+                    <th scope="col">Resultado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (linha of linhasComposicao(); track linha.grupo) {
+                    <tr [attr.data-grupo]="linha.grupo">
+                      <td>
+                        <b>{{ linha.nome }}</b>
+                        <div class="muted descricao">{{ linha.descricao }}</div>
+                      </td>
+                      <td class="num dir">{{ linha.observado }}</td>
+                      <td class="num dir">{{ linha.acaso }}</td>
+                      <td class="num dir">{{ linha.diferenca }}</td>
+                      <td class="num dir">{{ linha.margem }}</td>
+                      <td><span class="pill" [class]="linha.veredito">{{ linha.vereditoTexto }}</span></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <div class="head distribuicao-head">
+              <div>
+                <h4>Concursos por quantidade de {{ nomeGrupoComposicao() }}</h4>
+                <div class="sub">coluna = concursos que tiveram essa quantidade · traço = o que o acaso daria</div>
+              </div>
+              <srt-segmento
+                [opcoes]="opcoesGrupoComposicao"
+                [(selecionado)]="chaveGrupoComposicao"
+                rotuloAria="Grupo da distribuição"
+              />
+            </div>
+            <srt-grafico-colunas [itens]="itensComposicao()" rotuloAria="Concursos por quantidade de dezenas do grupo" />
+            <div class="legend">
+              <span><i class="s1"></i>observado</span>
+              <span><i class="linha-ref"></i>acaso</span>
+            </div>
+            <p class="hint nota-composicao" data-teste="nota-composicao">
+              Os grupos de cada concurso usam só os resultados anteriores a ele, como se fosse a véspera do sorteio.
+              {{ notaComposicao() }}
+            </p>
+          } @else {
+            <p class="hint" data-teste="composicao-vazia">
+              Nenhum concurso do período tem 50 concursos anteriores para comparar.
+            </p>
+          }
+        </section>
+
         <section class="panel card wide" data-teste="mapa-calor" aria-labelledby="titulo-mapa">
           <div class="head">
             <div>

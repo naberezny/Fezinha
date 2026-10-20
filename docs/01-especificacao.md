@@ -123,6 +123,7 @@ export interface ConfiguracaoGeracao {
   fixas: number[];                   // dezenas escolhidas pelo usuário (opcional)
   atrasadas: { atrasoMinimo: number; intensidade: number }; // padrão 10 e 2 (1..3, passo 0,5)
   frequentes: { periodo: Periodo };  // padrão últimos 50
+  mista?: { proporcaoFrias: number }; // 0..1, passo 0,25; ausente = 0,5
   regras: Record<string, boolean>;   // ids de filtros ligados
 }
 
@@ -136,11 +137,11 @@ export interface Filtro {
 export function gerarJogos(historico: Historico, config: ConfiguracaoGeracao, rng: () => number): Jogo[];
 ```
 
-Pesos (iguais ao protótipo e ao `gerar_jogos.py`):
+Pesos (iguais ao protótipo e ao `gerar_jogos.py`, exceto a mista, refeita em 20/10/2026):
 
 - atrasadas: `peso = atraso >= atrasoMinimo ? 1 + (atraso / esperado) ^ intensidade : 1`
 - frequentes: `peso = 1 + frequênciaNoPeríodo`
-- mista: `peso = sqrt(a_norm × f_norm) + 0,05` (normalizados pelo máximo)
+- mista: `peso = 0,05 + (1 − p)·x² + p·(1 − x)²`, com x = posição da frequência na janela (0 = a que menos saiu, 1 = a que mais saiu; todas iguais = 0,5) e p = `mista.proporcaoFrias` (0 = só as mais frequentes, 1 = só as menos, 0,5 = os dois extremos). Antes era `sqrt(a_norm × f_norm) + 0,05`, que favorecia dezenas ao mesmo tempo frequentes e atrasadas; a faixa 0,05..1,05 continua a mesma. Na tela Gerar: janela de concursos (a mesma do modo frequentes) e barra "Mais ou menos frequentes" com texto vivo dos pesos relativos.
 - aleatorio: `peso = 1`
 
 Sorteio ponderado sem reposição começando pelas fixas; rejeição por filtros; até 20.000 tentativas; sem jogos duplicados na mesma geração.
@@ -252,6 +253,8 @@ KPIs: último concurso (data e situação), acumulado atual (com sequência de a
 ### 6.4 Aba Estatísticas das dezenas
 
 Filtro de período (últimos 50 / últimos 100 / ano atual / ano anterior / histórico). KPIs: concursos no período, média por dezena (com esperado), mais sorteada (e menos), mais atrasada. Blocos: frequência por dezena (60 barras, ordenar por dezena/total, 5 mais e 5 menos em destaque, demais esmaecidas); atraso atual (15 maiores, linha de referência no esperado); mais e menos sorteadas (listas com barra); mapa de calor dezena × mês (12 meses, rampa sequencial 0..4+); pares × ímpares por sorteio; soma das dezenas por faixa de 20. Tooltips em todos os marcadores; gráficos em SVG próprio (sem biblioteca), cores por token de tema.
+
+Composição dos concursos (20/10/2026; segue o período): tabela com quentes e frias (o terço que mais e o que menos saiu nos 50 concursos anteriores), atrasadas (atraso ≥ esperado arredondado) e repetidas (do concurso anterior), cada uma com média por concurso, acaso, diferença, margem de 99% e resultado; gráfico de colunas da distribuição do grupo escolhido (coluna = concursos observados, traço = acaso, via `referencia` no `ItemColuna`). Grupos montados só com os concursos anteriores; concursos sem 50 anteriores ficam de fora. Core: `calcularComposicao` (`composicao.ts`) e `distribuicaoAcaso`, `varianciaAcaso` e `vereditoDe` (`acaso.ts`).
 
 Ritmo de cada dezena (19/10/2026; histórico completo, independe do período): tabela com dezena, atraso atual, "fora há mais tempo que" (barra com `passouDe`), "sai a cada" (intervalo médio; 2 casas quando o esperado é menor que 5, como na Lotofácil) e maior ausência; ordem "mais fora do ritmo" (padrão) ou "por dezena"; rolagem própria com cabeçalho fixo. Nota abaixo compara com o acaso (esperado, faixa observada, chance igual para todas no próximo concurso) e leva à aba Teste.
 

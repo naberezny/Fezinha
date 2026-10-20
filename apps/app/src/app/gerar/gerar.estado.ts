@@ -9,6 +9,8 @@ import {
   formatarAtraso,
   formatarDezena,
   gerarJogos,
+  pesoMista,
+  PROPORCAO_FRIAS_PADRAO,
   rngPadrao,
   chanceUmEm,
   type ConfiguracaoGeracao,
@@ -30,6 +32,8 @@ export const ATRASO_MINIMO_MAX = 80;
 export const INTENSIDADE_MIN = 1;
 export const INTENSIDADE_MAX = 3;
 export const INTENSIDADE_PASSO = 0.5;
+/** Modo misto: fração do peso para as menos frequentes, 0..1 em passos de 0,25. */
+export const PROPORCAO_FRIAS_PASSO = 0.25;
 
 /** Acordeão em que a regra aparece: "Regras do volante" ou "Filtros estatísticos". */
 export type GrupoRegra = 'volante' | 'estatistico';
@@ -97,7 +101,7 @@ export const MODOS_GERACAO: readonly ModoGeracao[] = [
     id: 'mista',
     titulo: 'Mista',
     nomeCurto: 'mista',
-    descricao: 'Média entre atraso e frequência, normalizados.',
+    descricao: 'Divide o peso entre as dezenas que mais saíram e as que menos saíram na janela escolhida.',
     padrao: false,
   },
   {
@@ -128,6 +132,11 @@ export interface OpcaoJanela {
 
 function limitar(valor: number, minimo: number, maximo: number): number {
   return Math.min(maximo, Math.max(minimo, valor));
+}
+
+/** "21", "1,8": até 1 casa decimal, vírgula, sem ",0". */
+function formatarVezes(valor: number): string {
+  return String(Math.round(valor * 10) / 10).replace('.', ',');
 }
 
 /** Inteiro com separador de milhar pt-BR ("50.063.860"), sem depender de Intl. */
@@ -166,6 +175,7 @@ export class GerarEstado {
     computation: () => untracked(() => Math.round(atrasoEsperado(this.loteria()))),
   });
   private readonly _intensidade = signal(2);
+  private readonly _proporcaoFrias = signal(PROPORCAO_FRIAS_PADRAO);
   private readonly _janelaFrequencia = signal<JanelaFrequencia>('50');
   /** Regras ligadas por id. Reinicia ao trocar de loteria: ligadas por padrão só as que se aplicam ao jogo inicial. */
   private readonly _regras = linkedSignal<string, Record<string, boolean>>({
@@ -187,6 +197,8 @@ export class GerarEstado {
   readonly fixas = this._fixas.asReadonly();
   readonly atrasoMinimo = this._atrasoMinimo.asReadonly();
   readonly intensidade = this._intensidade.asReadonly();
+  /** Modo misto: 0 = só as mais frequentes, 1 = só as menos frequentes, 0,5 = metade para cada. */
+  readonly proporcaoFrias = this._proporcaoFrias.asReadonly();
   readonly janelaFrequencia = this._janelaFrequencia.asReadonly();
   /** Filtros ligados, por id; os que não se aplicam ao tamanho de jogo atual ficam sempre desligados. */
   readonly regras = this._regras.asReadonly();
@@ -310,6 +322,27 @@ export class GerarEstado {
     );
   });
 
+  /** Divisão do modo misto em texto ("metade para cada", "75% para as mais frequentes"). */
+  readonly rotuloMista = computed(() => {
+    const frias = Math.round(this.proporcaoFrias() * 100);
+    if (frias === 50) return 'metade para cada lado';
+    if (frias === 0) return 'só as mais frequentes';
+    if (frias === 100) return 'só as menos frequentes';
+    return frias > 50 ? `${frias}% para as menos frequentes` : `${100 - frias}% para as mais frequentes`;
+  });
+
+  /**
+   * Peso relativo, na divisão atual do modo misto, da dezena que mais saiu, da do meio e da que menos saiu na janela
+   * (em vezes o menor dos três).
+   */
+  readonly exemplosMista = computed(() => {
+    const p = this.proporcaoFrias();
+    const [mais, meio, menos] = [1, 0.5, 0].map((posicao) => pesoMista(posicao, p));
+    const menor = Math.min(mais, meio, menos);
+    const vezes = (peso: number) => formatarVezes(peso / menor);
+    return { maisSaiu: vezes(mais), meio: vezes(meio), menosSaiu: vezes(menos) };
+  });
+
   // ---------- Resumos das seções fechadas do acordeão ----------
   readonly resumoModo = computed(() => MODOS_GERACAO.find((modo) => modo.id === this.estrategia())?.titulo ?? '');
 
@@ -335,6 +368,7 @@ export class GerarEstado {
     fixas: this.fixas(),
     atrasadas: { atrasoMinimo: this.atrasoMinimo(), intensidade: this.intensidade() },
     frequentes: { periodo: this.periodoDe(this.janelaFrequencia()) },
+    mista: { proporcaoFrias: this.proporcaoFrias() },
     regras: this.regras(),
   }));
 
@@ -421,6 +455,12 @@ export class GerarEstado {
   definirIntensidade(valor: number): void {
     const arredondada = Math.round(valor / INTENSIDADE_PASSO) * INTENSIDADE_PASSO;
     this._intensidade.set(limitar(arredondada, INTENSIDADE_MIN, INTENSIDADE_MAX));
+  }
+
+  /** Proporção do modo misto, 0..1 em passos de 0,25. */
+  definirProporcaoFrias(valor: number): void {
+    const arredondada = Math.round(valor / PROPORCAO_FRIAS_PASSO) * PROPORCAO_FRIAS_PASSO;
+    this._proporcaoFrias.set(limitar(arredondada, 0, 1));
   }
 
   definirJanelaFrequencia(janela: JanelaFrequencia): void {

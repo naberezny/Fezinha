@@ -1,13 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, linkedSignal, signal } from '@angular/core';
 import { IonContent } from '@ionic/angular';
-import { executarTesteEstrategias } from '@sorteios/core';
-import type { EstrategiaTestada, ResultadoTesteEstrategias } from '@sorteios/core';
+import { executarTesteEstrategias, vereditoDe } from '@sorteios/core';
+import type { EstrategiaTestada, ResultadoTesteEstrategias, Veredito } from '@sorteios/core';
 import { KpiComponent, SegmentoComponent } from '@sorteios/ui';
 import type { OpcaoSegmento } from '@sorteios/ui';
 import { HistoricoStore } from '../dados/historico.store';
 
 type ChaveJanela = '100' | '500' | '1000' | 'tudo';
-export type Veredito = 'dentro' | 'acima' | 'abaixo';
 
 /** Concursos iniciais que nunca são testados: as estratégias precisam de algum histórico para ter o que pesar. */
 export const AQUECIMENTO = 100;
@@ -27,7 +26,7 @@ const NOMES: Record<EstrategiaTestada, { nome: string; curto: string; descricao:
   aleatorio: { nome: 'Totalmente aleatório', curto: 'Aleatório', descricao: 'todas as dezenas com o mesmo peso' },
   atrasadas: { nome: 'Dezenas atrasadas', curto: 'Atrasadas', descricao: 'peso maior para quem está há mais tempo sem sair' },
   frequentes: { nome: 'Dezenas frequentes', curto: 'Frequentes', descricao: 'peso maior para quem mais saiu nos últimos 50' },
-  mista: { nome: 'Mista', curto: 'Mista', descricao: 'atraso e frequência combinados' },
+  mista: { nome: 'Mista', curto: 'Mista', descricao: 'metade do peso para as que mais saíram, metade para as que menos' },
   ritmo: {
     nome: 'Ritmo de cada dezena',
     curto: 'Ritmo',
@@ -47,13 +46,6 @@ const FORMATADOR_PERCENTUAL = new Intl.NumberFormat('pt-BR', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
-
-/** Dentro da margem (99%) do acaso, acima ou abaixo dela. */
-export function vereditoDe(mediaAcertos: number, margem: number, acaso: number): Veredito {
-  const diferenca = mediaAcertos - acaso;
-  if (Math.abs(diferenca) <= margem) return 'dentro';
-  return diferenca > 0 ? 'acima' : 'abaixo';
-}
 
 interface LinhaResultado {
   estrategia: EstrategiaTestada;

@@ -117,6 +117,12 @@ export interface ConfiguracaoGeracao {
     intensidade: number;
   };
   frequentes: { periodo: Periodo };
+  /**
+   * Modo misto: quanto do peso vai para as dezenas que MENOS saíram (frias) e quanto para as que MAIS saíram
+   * (quentes), na janela de `frequentes.periodo`. 0 = só as mais frequentes, 1 = só as menos frequentes, 0,5 = as dos
+   * dois extremos. Ausente = 0,5.
+   */
+  mista?: { proporcaoFrias: number };
   /** Filtros ligados, por id (ausente = desligado). */
   regras: Record<string, boolean>;
 }

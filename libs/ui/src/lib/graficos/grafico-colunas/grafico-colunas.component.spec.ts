@@ -45,4 +45,21 @@ describe('GraficoColunasComponent', () => {
 
     expect((document.body.querySelector('.srt-tip') as HTMLElement).innerHTML).toBe('2025: <b>1.234</b> concursos');
   });
+
+  it('sem referência não desenha traço; com referência, traço na altura dela e escala que a inclui', async () => {
+    expect(host().querySelectorAll('line.ref')).toHaveLength(0);
+
+    fixture.componentRef.setInput('itens', [
+      { rotulo: '0', valor: 50, referencia: 100 },
+      { rotulo: '1', valor: 80 },
+    ]);
+    await fixture.whenStable();
+
+    const tracos = host().querySelectorAll('line.ref');
+    const alturas = Array.from(host().querySelectorAll('rect.bar')).map((r) => Number(r.getAttribute('height')));
+    expect(tracos).toHaveLength(1);
+    // A referência (100) é o maior valor: fica no topo da área útil (y = 14) e a coluna de 50 tem metade da altura.
+    expect(Number(tracos[0].getAttribute('y1'))).toBeCloseTo(14, 5);
+    expect(alturas[0]).toBeCloseTo((170 - 14 - 26) / 2, 5);
+  });
 });

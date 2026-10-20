@@ -1,11 +1,18 @@
 import type { WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideIonicAngular } from '@ionic/angular';
-import { criarRng, testarEstrategias, type Concurso, type Historico, type ResultadoTesteEstrategias } from '@sorteios/core';
+import {
+  criarRng,
+  testarEstrategias,
+  vereditoDe,
+  type Concurso,
+  type Historico,
+  type ResultadoTesteEstrategias,
+} from '@sorteios/core';
 import { MEGA_SENA } from '@sorteios/loterias/mega-sena';
 import { HistoricoStore } from '../dados/historico.store';
 import { HistoricoStoreFalso, LOTOMANIA_FALSA } from '../testes/stores-fake';
-import { TestePage, vereditoDe } from './teste.page';
+import { TestePage } from './teste.page';
 
 /** `quantidade` concursos da Mega-Sena com 6 dezenas sorteadas de forma determinística. */
 function historicoMegaSena(quantidade: number): Historico {
@@ -28,16 +35,6 @@ function historicoMegaSena(quantidade: number): Historico {
   });
   return { loteria: MEGA_SENA, concursos };
 }
-
-describe('vereditoDe', () => {
-  it('dentro da margem é empate; fora dela, acima ou abaixo do acaso', () => {
-    // Act / Assert
-    expect(vereditoDe(9.03, 0.04, 9)).toBe('dentro');
-    expect(vereditoDe(9.04, 0.04, 9)).toBe('dentro');
-    expect(vereditoDe(9.05, 0.04, 9)).toBe('acima');
-    expect(vereditoDe(8.9, 0.04, 9)).toBe('abaixo');
-  });
-});
 
 describe('TestePage', () => {
   let store: HistoricoStoreFalso;

@@ -399,6 +399,12 @@ describe('gerarJogos', () => {
       expect(() => gerarJogos(historico, configuracao({ fixas: [fixa] }), criarRng(1))).toThrow(/fixa/);
     });
 
+    it.each([-0.1, 1.5, Number.NaN])('lança erro para mista.proporcaoFrias %p fora de 0..1', (proporcaoFrias) => {
+      expect(() =>
+        gerarJogos(historico, configuracao({ estrategia: 'mista', mista: { proporcaoFrias } }), criarRng(1)),
+      ).toThrow(/proporcaoFrias/);
+    });
+
     it('lança erro para fixas repetidas', () => {
       expect(() => gerarJogos(historico, configuracao({ fixas: [5, 5] }), criarRng(1))).toThrow(/distintas/);
     });

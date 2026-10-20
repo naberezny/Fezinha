@@ -47,6 +47,12 @@ function validarConfiguracao(historico: Historico, config: ConfiguracaoGeracao):
       `Há ${config.fixas.length} dezenas fixas, mais do que as ${config.dezenasPorJogo} dezenas por jogo.`,
     );
   }
+  if (config.mista !== undefined) {
+    const { proporcaoFrias } = config.mista;
+    if (!Number.isFinite(proporcaoFrias) || proporcaoFrias < 0 || proporcaoFrias > 1) {
+      throw new Error(`mista.proporcaoFrias deve ficar entre 0 e 1 (recebido ${proporcaoFrias}).`);
+    }
+  }
   for (const id of Object.keys(config.regras)) {
     if (!filtroExiste(id)) throw new Error(`Regra desconhecida: ${id}.`);
   }

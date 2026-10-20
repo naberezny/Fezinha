@@ -4,6 +4,7 @@ import { IonContent } from '@ionic/angular';
 import {
   atrasoEsperado,
   calcularEstatisticas,
+  calcularComposicao,
   calcularRitmo,
   compararDezenas,
   dezenaNaOrdem,
@@ -14,8 +15,17 @@ import {
   frequenciaPorMes,
   ordemNoVolante,
   recortarPeriodo,
+  vereditoDe,
 } from '@sorteios/core';
-import type { EstatisticaDezena, Periodo, RitmoDezena } from '@sorteios/core';
+import type {
+  ComposicaoGrupo,
+  EstatisticaDezena,
+  GrupoComposicao,
+  Periodo,
+  ResultadoComposicao,
+  RitmoDezena,
+  Veredito,
+} from '@sorteios/core';
 import {
   BolaComponent,
   GraficoBarrasHorizontaisComponent,
@@ -54,6 +64,45 @@ const OPCOES_ORDEM: readonly OpcaoSegmento[] = [
   { valor: 'dezena', rotulo: 'por dezena' },
   { valor: 'total', rotulo: 'por total' },
 ];
+
+const OPCOES_GRUPO_COMPOSICAO: readonly OpcaoSegmento[] = [
+  { valor: 'quentes', rotulo: 'Quentes' },
+  { valor: 'frias', rotulo: 'Frias' },
+  { valor: 'atrasadas', rotulo: 'Atrasadas' },
+  { valor: 'repetidas', rotulo: 'Repetidas' },
+];
+
+const NOME_GRUPO: Record<GrupoComposicao, string> = {
+  quentes: 'Quentes',
+  frias: 'Frias',
+  atrasadas: 'Atrasadas',
+  repetidas: 'Repetidas',
+};
+
+const TEXTO_VEREDITO: Record<Veredito, string> = {
+  dentro: 'dentro do acaso',
+  acima: 'acima do acaso',
+  abaixo: 'abaixo do acaso',
+};
+
+/** Linha da tabela "Composição dos concursos". */
+interface LinhaComposicao {
+  grupo: GrupoComposicao;
+  nome: string;
+  descricao: string;
+  observado: string;
+  acaso: string;
+  diferenca: string;
+  margem: string;
+  veredito: Veredito;
+  vereditoTexto: string;
+}
+
+const FORMATADOR_DUAS_CASAS_SINAL = new Intl.NumberFormat('pt-BR', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+  signDisplay: 'exceptZero',
+});
 
 const OPCOES_ORDEM_RITMO: readonly OpcaoSegmento[] = [
   { valor: 'fora', rotulo: 'mais fora do ritmo' },
@@ -373,6 +422,94 @@ export class EstatisticasPage implements OnInit {
       chance: FORMATADOR_PERCENTUAL_DECIMAL.format(sorteadas / universo),
     };
   });
+
+  protected readonly chaveGrupoComposicao = signal<string>('atrasadas');
+  protected readonly opcoesGrupoComposicao = OPCOES_GRUPO_COMPOSICAO;
+
+  /** Composição dos concursos do período (grupos montados na véspera de cada um, com o histórico anterior). */
+  private readonly _composicao = computed<ResultadoComposicao | undefined>(() => {
+    const historico = this._store.historico();
+    return historico ? calcularComposicao(historico, this._periodo()) : undefined;
+  });
+
+  protected readonly concursosComposicao = computed(() => this._composicao()?.concursos ?? 0);
+
+  protected readonly linhasComposicao = computed<LinhaComposicao[]>(() => {
+    const composicao = this._composicao();
+    if (!composicao || composicao.concursos === 0) return [];
+    const { sorteadas } = this._store.loteria();
+    const comPercentual = (valor: number) =>
+      `${FORMATADOR_DUAS_CASAS.format(valor)} (${FORMATADOR_PERCENTUAL_DECIMAL.format(valor / sorteadas)})`;
+    return composicao.grupos.map((g) => {
+      const veredito = vereditoDe(g.mediaObservada, g.margem, g.mediaAcaso);
+      return {
+        grupo: g.grupo,
+        nome: NOME_GRUPO[g.grupo],
+        descricao: this.descricaoGrupo(g, composicao),
+        observado: comPercentual(g.mediaObservada),
+        acaso: comPercentual(g.mediaAcaso),
+        diferenca: FORMATADOR_DUAS_CASAS_SINAL.format(g.mediaObservada - g.mediaAcaso),
+        margem: `± ${FORMATADOR_DUAS_CASAS.format(g.margem)}`,
+        veredito,
+        vereditoTexto: TEXTO_VEREDITO[veredito],
+      };
+    });
+  });
+
+  /** Concursos por quantidade de dezenas do grupo escolhido: coluna = observado, traço = acaso. */
+  protected readonly itensComposicao = computed<ItemColuna[]>(() => {
+    const composicao = this._composicao();
+    const grupo = composicao?.grupos.find((g) => g.grupo === this.chaveGrupoComposicao());
+    if (!composicao || !grupo || composicao.concursos === 0) return [];
+    const total = composicao.concursos;
+    const nome = NOME_GRUPO[grupo.grupo].toLowerCase();
+    return grupo.distribuicaoObservada.map((observado, quantidade) => {
+      const acaso = grupo.distribuicaoAcaso[quantidade] ?? 0;
+      return {
+        rotulo: String(quantidade),
+        valor: observado,
+        referencia: acaso,
+        dica:
+          `${quantidade} ${nome}: <b>${FORMATADOR_INTEIRO.format(observado)}</b> concursos ` +
+          `(${FORMATADOR_PERCENTUAL_DECIMAL.format(observado / total)})` +
+          `<br>pelo acaso: ${FORMATADOR_INTEIRO.format(acaso)} (${FORMATADOR_PERCENTUAL_DECIMAL.format(acaso / total)})`,
+      };
+    });
+  });
+
+  protected readonly nomeGrupoComposicao = computed(
+    () => NOME_GRUPO[this.chaveGrupoComposicao() as GrupoComposicao]?.toLowerCase() ?? '',
+  );
+
+  /** Conclusão do painel: empate com o acaso em todos os grupos, ou quais saíram da margem neste período. */
+  protected readonly notaComposicao = computed(() => {
+    const fora = this.linhasComposicao().filter((l) => l.veredito !== 'dentro');
+    if (fora.length === 0) {
+      return (
+        'Todos os grupos ficaram dentro da margem do acaso: os sorteios trazem quentes, frias, atrasadas e repetidas ' +
+        'na proporção que o acaso daria. Nenhum desses grupos dá vantagem para montar jogos.'
+      );
+    }
+    const lista = fora.map((l) => `${l.nome} ${l.vereditoTexto}`).join(', ');
+    return (
+      `${lista} neste período. Com quatro grupos e cinco períodos para olhar, um desvio isolado aparece por sorte de ` +
+      'vez em quando: se fosse padrão, ele se repetiria nos outros períodos.'
+    );
+  });
+
+  private descricaoGrupo(g: ComposicaoGrupo, composicao: ResultadoComposicao): string {
+    const { tamanhoTerco, janela, atrasoMinimo } = composicao;
+    switch (g.grupo) {
+      case 'quentes':
+        return `as ${tamanhoTerco} que mais saíram nos ${janela} concursos anteriores`;
+      case 'frias':
+        return `as ${tamanhoTerco} que menos saíram nos ${janela} concursos anteriores`;
+      case 'atrasadas':
+        return `sem sair há ${atrasoMinimo} ou mais concursos (${FORMATADOR_INTEIRO.format(g.tamanhoMedio)} em média)`;
+      case 'repetidas':
+        return `as ${FORMATADOR_INTEIRO.format(g.tamanhoMedio)} que saíram no concurso anterior`;
+    }
+  }
 
   protected readonly notasRodape = computed(() => {
     const notas = ['Fonte: resultados oficiais da Caixa Econômica Federal, servidos pela API do Sorteios.'];

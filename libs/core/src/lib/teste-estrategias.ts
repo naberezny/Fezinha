@@ -1,3 +1,4 @@
+import { distribuicaoAcaso } from './acaso';
 import { sortearDezenas } from './geracao';
 import { calcularPesos } from './pesos';
 import { AcompanhamentoRitmo } from './ritmo';
@@ -77,23 +78,9 @@ function pesoRitmo(passouDe: number): number {
 /** Acertos de um jogo de `dezenasPorJogo` dezenas por puro acaso. */
 export function acasoDoJogo(def: LoteriaDefinicao, dezenasPorJogo: number): AcasoTeste {
   const { universo, sorteadas } = def;
-  const lnFatorial = [0];
-  for (let n = 1; n <= universo; n++) lnFatorial.push(lnFatorial[n - 1] + Math.log(n));
-  const lnCombinacao = (n: number, k: number) => lnFatorial[n] - lnFatorial[k] - lnFatorial[n - k];
-
+  const distribuicao = distribuicaoAcaso(def, dezenasPorJogo);
   const premiadas = new Set(def.faixas.map((f) => f.acertos));
-  const maximo = Math.min(dezenasPorJogo, sorteadas);
-  const distribuicao = new Array<number>(maximo + 1).fill(0);
-  let probPremio = 0;
-  for (let acertos = Math.max(0, dezenasPorJogo + sorteadas - universo); acertos <= maximo; acertos++) {
-    const probabilidade = Math.exp(
-      lnCombinacao(dezenasPorJogo, acertos) +
-        lnCombinacao(universo - dezenasPorJogo, sorteadas - acertos) -
-        lnCombinacao(universo, sorteadas),
-    );
-    distribuicao[acertos] = probabilidade;
-    if (premiadas.has(acertos)) probPremio += probabilidade;
-  }
+  const probPremio = distribuicao.reduce((soma, p, acertos) => (premiadas.has(acertos) ? soma + p : soma), 0);
   return { mediaAcertos: (dezenasPorJogo * sorteadas) / universo, probPremio, distribuicao };
 }
 

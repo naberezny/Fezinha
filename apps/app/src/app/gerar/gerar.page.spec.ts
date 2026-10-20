@@ -282,6 +282,27 @@ describe('GerarPage', () => {
       expect(texto('#gerar-intensidade-texto')).toContain('há 20 concursos tem 1× mais chance');
     });
 
+    it('troca para "mista": mostra a janela e a barra entre mais e menos frequentes, com o texto vivo', async () => {
+      // Arrange
+      q<HTMLInputElement>('input[name="gerar-modo"][value="mista"]')!.click();
+      await fixture.whenStable();
+      const barra = q<HTMLInputElement>('#gerar-proporcao-frias')!;
+      const antes = texto('[data-teste="texto-mista"]');
+
+      // Act
+      barra.value = '0';
+      barra.dispatchEvent(new Event('input'));
+      await fixture.whenStable();
+
+      // Assert
+      expect(q('#gerar-janela')).not.toBeNull();
+      expect(q('#gerar-intensidade')).toBeNull();
+      expect(antes).toContain('a dezena que mais saiu tem peso 1,8×');
+      expect(TestBed.inject(GerarEstado).proporcaoFrias()).toBe(0);
+      expect(texto('[data-teste="rotulo-mista"]')).toBe('só as mais frequentes');
+      expect(texto('[data-teste="texto-mista"]')).toContain('a dezena que mais saiu tem peso 21×, uma do meio 6× e a que menos saiu 1×');
+    });
+
     it('troca para "frequentes": mostra a janela de concursos e esconde os parâmetros de atraso', async () => {
       // Arrange
       const frequentes = q<HTMLInputElement>('input[name="gerar-modo"][value="frequentes"]')!;

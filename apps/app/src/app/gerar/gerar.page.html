@@ -136,6 +136,45 @@
                               </div>
                             </div>
                           }
+                          @case ('mista') {
+                            @let pesos = estado.exemplosMista();
+                            <div class="params">
+                              <div class="p">
+                                <label for="gerar-janela">Janela de concursos</label>
+                                <select id="gerar-janela" (change)="aoMudarJanela($event)">
+                                  @for (opcao of estado.opcoesJanela(); track opcao.valor) {
+                                    <option [value]="opcao.valor" [selected]="opcao.valor === estado.janelaFrequencia()">
+                                      {{ opcao.rotulo }}
+                                    </option>
+                                  }
+                                </select>
+                              </div>
+                              <div class="p">
+                                <label for="gerar-proporcao-frias"
+                                  >Mais ou menos frequentes<br />
+                                  <span class="hint" data-teste="rotulo-mista">{{ estado.rotuloMista() }}</span></label
+                                >
+                                <input
+                                  type="range"
+                                  id="gerar-proporcao-frias"
+                                  [min]="limites.proporcaoFrias.min"
+                                  [max]="limites.proporcaoFrias.max"
+                                  [step]="limites.proporcaoFrias.passo"
+                                  [value]="estado.proporcaoFrias()"
+                                  aria-describedby="gerar-mista-texto"
+                                  (input)="aoMudarProporcaoFrias($event)"
+                                />
+                              </div>
+                              <div class="escala" aria-hidden="true">
+                                <span>só as mais frequentes</span><span>metade de cada</span><span>só as menos frequentes</span>
+                              </div>
+                              <div class="hint exemplo" id="gerar-mista-texto" data-teste="texto-mista">
+                                Na janela escolhida, a dezena que mais saiu tem peso <b>{{ pesos.maisSaiu }}×</b>, uma do meio
+                                <b>{{ pesos.meio }}×</b> e a que menos saiu <b>{{ pesos.menosSaiu }}×</b> (em relação à de menor
+                                peso). No meio da barra, as dos dois extremos são favorecidas.
+                              </div>
+                            </div>
+                          }
                           @case ('frequentes') {
                             <div class="params">
                               <div class="p">

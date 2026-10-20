@@ -117,44 +117,76 @@ describe('calcularPesos', () => {
   });
 
   describe('estratégia mista', () => {
-    it('normaliza pelo máximo e soma 0,05', () => {
-      // Arrange
-      const atraso = lista({ 1: [20, 0], 2: [10, 0], 3: [0, 0] });
-      const frequencia = lista({ 1: [0, 10], 2: [0, 10], 3: [0, 10] });
+    // Dezena 1 é a que mais saiu (10), a 2 fica no meio (5) e as demais são as que menos saíram (0).
+    const frequencia = lista({ 1: [0, 10], 2: [0, 5] });
+    const mista = (proporcaoFrias?: number) =>
+      calcularPesos(
+        frequencia,
+        frequencia,
+        configuracao({ estrategia: 'mista', ...(proporcaoFrias === undefined ? {} : { mista: { proporcaoFrias } }) }),
+        def,
+      );
 
+    it('proporção 0: só as mais frequentes ganham peso (1,05 a mais frequente, 0,05 a menos)', () => {
       // Act
-      const pesos = calcularPesos(atraso, frequencia, configuracao({ estrategia: 'mista' }), def);
+      const pesos = mista(0);
 
       // Assert
-      expect(pesos.get(1)).toBeCloseTo(1.05, 10); // sqrt(1 * 1) + 0,05
-      expect(pesos.get(2)).toBeCloseTo(Math.sqrt(0.5) + 0.05, 10);
+      expect(pesos.get(1)).toBeCloseTo(1.05, 10);
+      expect(pesos.get(2)).toBeCloseTo(0.3, 10);
       expect(pesos.get(3)).toBeCloseTo(0.05, 10);
     });
 
-    it('mantém todos os pesos entre 0,05 e 1,05', () => {
-      // Arrange
-      const atraso = lista({ 1: [40, 0], 5: [13, 0], 9: [2, 0] });
-      const frequencia = lista({ 1: [0, 3], 5: [0, 30], 9: [0, 17] });
-
+    it('proporção 1: só as menos frequentes ganham peso', () => {
       // Act
-      const pesos = calcularPesos(atraso, frequencia, configuracao({ estrategia: 'mista' }), def);
+      const pesos = mista(1);
 
       // Assert
-      for (const peso of pesos.values()) {
-        expect(peso).toBeGreaterThanOrEqual(0.05);
-        expect(peso).toBeLessThanOrEqual(1.05 + 1e-12);
-      }
+      expect(pesos.get(1)).toBeCloseTo(0.05, 10);
+      expect(pesos.get(2)).toBeCloseTo(0.3, 10);
+      expect(pesos.get(3)).toBeCloseTo(1.05, 10);
     });
 
-    it('não divide por zero quando todos os atrasos e frequências são 0', () => {
-      // Arrange
-      const estatisticas = lista();
-
+    it('sem proporção (padrão 0,5): os dois extremos ganham peso e a do meio perde', () => {
       // Act
-      const pesos = calcularPesos(estatisticas, estatisticas, configuracao({ estrategia: 'mista' }), def);
+      const pesos = mista();
 
       // Assert
-      expect([...pesos.values()].every((p) => p === 0.05)).toBe(true);
+      expect(pesos.get(1)).toBeCloseTo(0.55, 10);
+      expect(pesos.get(3)).toBeCloseTo(0.55, 10);
+      expect(pesos.get(2)).toBeCloseTo(0.3, 10);
+    });
+
+    it('o atraso não muda a mista; frequências todas iguais dão o mesmo peso a todas', () => {
+      // Arrange
+      const comAtraso = lista({ 1: [40, 10], 2: [0, 5] });
+      const iguais = lista();
+
+      // Act
+      const pesosComAtraso = calcularPesos(comAtraso, frequencia, configuracao({ estrategia: 'mista' }), def);
+      const pesosIguais = calcularPesos(iguais, iguais, configuracao({ estrategia: 'mista', mista: { proporcaoFrias: 0 } }), def);
+
+      // Assert
+      expect(pesosComAtraso).toEqual(mista());
+      expect(new Set(pesosIguais.values()).size).toBe(1);
+    });
+
+    it('mantém os pesos entre 0,05 e 1,05 e limita a proporção a 0..1', () => {
+      // Arrange
+      const variada = lista({ 1: [0, 3], 5: [0, 30], 9: [0, 17], 20: [0, 8] });
+
+      // Act
+      const todos = [0, 0.25, 0.5, 0.75, 1].flatMap((p) =>
+        [...calcularPesos(variada, variada, configuracao({ estrategia: 'mista', mista: { proporcaoFrias: p } }), def).values()],
+      );
+
+      // Assert
+      for (const peso of todos) {
+        expect(peso).toBeGreaterThanOrEqual(0.05 - 1e-12);
+        expect(peso).toBeLessThanOrEqual(1.05 + 1e-12);
+      }
+      expect(mista(2)).toEqual(mista(1));
+      expect(mista(-1)).toEqual(mista(0));
     });
   });
 

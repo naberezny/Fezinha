@@ -8,3 +8,5 @@ export * from './lib/geracao';
 export * from './lib/rng';
 export * from './lib/ritmo';
 export * from './lib/teste-estrategias';
+export * from './lib/acaso';
+export * from './lib/composicao';

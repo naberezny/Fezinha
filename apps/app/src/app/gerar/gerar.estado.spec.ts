@@ -123,8 +123,44 @@ describe('GerarEstado', () => {
         fixas: [3, 10],
         atrasadas: { atrasoMinimo: 10, intensidade: 2 },
         frequentes: { periodo: { tipo: 'ultimos', quantidade: 50 } },
+        mista: { proporcaoFrias: 0.5 },
         regras: estado.regras(),
       });
+    });
+  });
+
+  describe('modo misto', () => {
+    it('começa com metade para cada lado: extremos com 1,8× o peso das do meio', () => {
+      // Act / Assert
+      expect(estado.proporcaoFrias()).toBe(0.5);
+      expect(estado.rotuloMista()).toBe('metade para cada lado');
+      expect(estado.exemplosMista()).toEqual({ maisSaiu: '1,8', meio: '1', menosSaiu: '1,8' });
+    });
+
+    it('nas pontas favorece um lado só (21× contra 1×) e entra na configuração', () => {
+      // Act
+      estado.definirProporcaoFrias(0);
+      const soQuentes = { rotulo: estado.rotuloMista(), pesos: estado.exemplosMista() };
+      estado.definirProporcaoFrias(1);
+
+      // Assert
+      expect(soQuentes).toEqual({ rotulo: 'só as mais frequentes', pesos: { maisSaiu: '21', meio: '6', menosSaiu: '1' } });
+      expect(estado.rotuloMista()).toBe('só as menos frequentes');
+      expect(estado.exemplosMista()).toEqual({ maisSaiu: '1', meio: '6', menosSaiu: '21' });
+      expect(estado.configuracao().mista).toEqual({ proporcaoFrias: 1 });
+    });
+
+    it('arredonda para passos de 0,25, limita a 0..1 e descreve as posições intermediárias', () => {
+      // Act / Assert
+      estado.definirProporcaoFrias(0.3);
+      expect(estado.proporcaoFrias()).toBe(0.25);
+      expect(estado.rotuloMista()).toBe('75% para as mais frequentes');
+      estado.definirProporcaoFrias(0.8);
+      expect(estado.rotuloMista()).toBe('75% para as menos frequentes');
+      estado.definirProporcaoFrias(7);
+      expect(estado.proporcaoFrias()).toBe(1);
+      estado.definirProporcaoFrias(-2);
+      expect(estado.proporcaoFrias()).toBe(0);
     });
   });
 
