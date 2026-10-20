@@ -17,7 +17,6 @@ Ver `docs/01-especificacao.md` (D1–D12) e `docs/03-checklist-testes.md` (seç�
 ## Pendências (dono: João decide)
 - Proxy no Brasil para a Caixa: VM gratuita na Oracle Cloud São Paulo com tinyproxy (só o IP da VPS, com senha, só `caixa.gov.br`), depois `CAIXA_PROXY` no `.env` da VPS e redeploy.
 - Domínio com HTTPS no aaPanel (proxy reverso para `127.0.0.1:8095`) e então voltar `ENDERECO_WEB` para `127.0.0.1`.
-- VPS ainda com a versão de 19/10 (sem composição e sem a nova Mista): reenviar e rebuild (`deploy/README.md`, "Atualizar").
 - I6: tela inicial só mostra o último concurso da loteria ativa; proposta: endpoint `GET /loterias/resumo`.
 - G12: tela "Meus jogos" (jogos salvos existem no IndexedDB, sem tela).
 - G3: fixture real de concurso **da Mega-Sena** com ganhador da Sena (o formato dos locais já foi confirmado com a Lotofácil 3807).
