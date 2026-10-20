@@ -1,8 +1,11 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { IonContent } from '@ionic/angular';
 import {
   atrasoEsperado,
   calcularEstatisticas,
+  calcularRitmo,
+  compararDezenas,
   dezenaNaOrdem,
   distribuicaoPares,
   distribuicaoSoma,
@@ -12,8 +15,9 @@ import {
   ordemNoVolante,
   recortarPeriodo,
 } from '@sorteios/core';
-import type { EstatisticaDezena, Periodo } from '@sorteios/core';
+import type { EstatisticaDezena, Periodo, RitmoDezena } from '@sorteios/core';
 import {
+  BolaComponent,
   GraficoBarrasHorizontaisComponent,
   GraficoBarrasVerticaisComponent,
   GraficoColunasComponent,
@@ -51,11 +55,32 @@ const OPCOES_ORDEM: readonly OpcaoSegmento[] = [
   { valor: 'total', rotulo: 'por total' },
 ];
 
+const OPCOES_ORDEM_RITMO: readonly OpcaoSegmento[] = [
+  { valor: 'fora', rotulo: 'mais fora do ritmo' },
+  { valor: 'dezena', rotulo: 'por dezena' },
+];
+
 interface KpiEstatistica {
   titulo: string;
   valor: string;
   detalhe: string;
 }
+
+/** Linha da tabela "Ritmo de cada dezena". */
+interface LinhaRitmo {
+  dezena: number;
+  /** "10,2" ou "—" com menos de 2 aparições. */
+  intervaloMedio: string;
+  maiorAusencia: number;
+  atraso: number;
+  /** 0..100, largura da barra. */
+  passouDe: number;
+  passouDeTexto: string;
+}
+
+const FORMATADOR_DUAS_CASAS = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const FORMATADOR_PERCENTUAL = new Intl.NumberFormat('pt-BR', { style: 'percent', maximumFractionDigits: 0 });
+const FORMATADOR_PERCENTUAL_DECIMAL = new Intl.NumberFormat('pt-BR', { style: 'percent', maximumFractionDigits: 1 });
 
 /** A partir de quantas dezenas o mapa de calor deixa de caber na tela e ganha rolagem horizontal (Lotomania: 100). */
 const UNIVERSO_MAPA_COM_ROLAGEM = 60;
@@ -85,6 +110,8 @@ function porAtrasoDecrescente(a: EstatisticaDezena, b: EstatisticaDezena): numbe
   selector: 'srt-estatisticas-page',
   imports: [
     IonContent,
+    RouterLink,
+    BolaComponent,
     GraficoBarrasHorizontaisComponent,
     GraficoBarrasVerticaisComponent,
     GraficoColunasComponent,
@@ -298,6 +325,53 @@ export class EstatisticasPage implements OnInit {
       valor: f.total,
       dica: `soma entre ${f.inicio} e ${f.inicio + FAIXA_SOMA - 1}: <b>${FORMATADOR_INTEIRO.format(f.total)}</b> concursos`,
     }));
+  });
+
+  protected readonly chaveOrdemRitmo = signal<string>('fora');
+  protected readonly opcoesOrdemRitmo = OPCOES_ORDEM_RITMO;
+
+  /** Ritmo de cada dezena no histórico inteiro (independe do filtro de período). */
+  private readonly _ritmo = computed<RitmoDezena[]>(() => {
+    const historico = this._store.historico();
+    return historico ? calcularRitmo(historico) : [];
+  });
+
+  /** Intervalos curtos (Lotofácil: 1,67) pedem 2 casas para as dezenas não parecerem todas iguais. */
+  private readonly _formatadorRitmo = computed(() =>
+    this.atrasoEsperadoConcursos() < 5 ? FORMATADOR_DUAS_CASAS : FORMATADOR_DECIMAL,
+  );
+
+  /** Mais fora do ritmo primeiro (passouDe, depois atraso); ou na ordem do volante. */
+  protected readonly linhasRitmo = computed<LinhaRitmo[]>(() => {
+    const ritmo = [...this._ritmo()];
+    const formatar = this._formatadorRitmo();
+    if (this.chaveOrdemRitmo() === 'fora') {
+      const comparar = compararDezenas(this._store.loteria());
+      ritmo.sort((a, b) => b.passouDe - a.passouDe || b.atraso - a.atraso || comparar(a.dezena, b.dezena));
+    }
+    return ritmo.map((r) => ({
+      dezena: r.dezena,
+      intervaloMedio: r.intervaloMedio === undefined ? '—' : formatar.format(r.intervaloMedio),
+      maiorAusencia: r.maiorAusencia,
+      atraso: r.atraso,
+      passouDe: Math.round(r.passouDe * 100),
+      passouDeTexto: FORMATADOR_PERCENTUAL.format(r.passouDe),
+    }));
+  });
+
+  /** Textos da nota do ritmo: o esperado pelo acaso, a faixa observada e a chance (igual) de cada dezena. */
+  protected readonly notaRitmo = computed(() => {
+    const medias = this._ritmo()
+      .map((r) => r.intervaloMedio)
+      .filter((m): m is number => m !== undefined);
+    const { universo, sorteadas } = this._store.loteria();
+    const formatar = this._formatadorRitmo();
+    return {
+      esperado: formatar.format(this.atrasoEsperadoConcursos()),
+      menor: medias.length ? formatar.format(Math.min(...medias)) : '—',
+      maior: medias.length ? formatar.format(Math.max(...medias)) : '—',
+      chance: FORMATADOR_PERCENTUAL_DECIMAL.format(sorteadas / universo),
+    };
   });
 
   protected readonly notasRodape = computed(() => {

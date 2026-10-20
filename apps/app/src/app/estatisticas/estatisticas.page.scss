@@ -43,3 +43,51 @@
 .vazio p {
   margin-block-end: 12px;
 }
+
+/* Ritmo de cada dezena: tabela com rolagem própria (100 linhas na Lotomania) e cabeçalho fixo. */
+.tabela-ritmo {
+  max-height: 420px;
+  overflow-y: auto;
+}
+.tabela-ritmo thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: 1;
+}
+.tabela-ritmo table {
+  min-width: 520px;
+}
+.tabela-ritmo td {
+  padding-block: 5px;
+  white-space: nowrap;
+}
+.tabela-ritmo .dir {
+  text-align: right;
+}
+.passou {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 130px;
+}
+.passou .trilho {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+.passou .trilho i {
+  display: block;
+  height: 100%;
+  background: var(--s1);
+}
+.passou .num {
+  width: 3.2em;
+  text-align: right;
+  font-size: 12.5px;
+}
+.nota-ritmo {
+  margin-block-start: 12px;
+}

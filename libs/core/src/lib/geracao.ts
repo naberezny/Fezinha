@@ -66,8 +66,11 @@ function resolverFiltros(historico: Historico, config: ConfiguracaoGeracao): Fil
     .filter((filtro) => filtro.aplicavelA(historico.loteria, config.dezenasPorJogo));
 }
 
-/** Sorteio por roleta, sem reposição, a partir das fixas. Devolve as dezenas na ordem do volante (`comparar`). */
-function sortearDezenas(
+/**
+ * Sorteio por roleta, sem reposição, a partir das fixas. Devolve as dezenas na ordem do volante (`comparar`).
+ * Exportado para o teste das estratégias, que sorteia com os mesmos pesos sem passar pelos filtros.
+ */
+export function sortearDezenas(
   candidatas: number[],
   pesos: Map<number, number>,
   fixas: number[],

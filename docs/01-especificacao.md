@@ -105,6 +105,12 @@ export function resumoPorAno(historico: Historico): { ano: number; concursos: nu
 
 Atraso = concursos desde a última aparição (0 = saiu no último). Atraso esperado = universo / sorteadas (10 na Mega-Sena). Probabilidade de ausência = (1 − sorteadas/universo)^atraso.
 
+Ritmo de cada dezena (`ritmo.ts`, 19/10/2026): `calcularRitmo(historico)` devolve, por dezena, aparições, intervalo médio entre aparições (1 = saiu no seguinte) e desvio, maior ausência entre duas aparições, atraso e `passouDe` (fração das ausências já encerradas mais curtas que o atraso atual). `AcompanhamentoRitmo` faz o mesmo concurso a concurso. É descrição do passado: medido nos resultados reais, o intervalo médio por dezena fica dentro do que o acaso produz (Mega-Sena 8,6 a 12,1 para esperado 10; Lotomania 4,6 a 5,5 para 5; Lotofácil 1,60 a 1,75 para 1,67) e um intervalo não prevê o seguinte.
+
+### 4.5 Teste das estratégias (`teste-estrategias.ts`)
+
+`executarTesteEstrategias(historico, { concursos, dezenasPorJogo, jogosPorConcurso = 10, semente = 1, janelaFrequencia = 50 })` é um gerador: para cada um dos últimos `concursos`, gera jogos com cada estratégia (`aleatorio`, `atrasadas`, `frequentes`, `mista` e `ritmo`, esta só existe no teste) usando apenas os resultados anteriores e conta os acertos; devolve o progresso (0..1) a cada 25 concursos e o resultado no fim. `testarEstrategias` roda de uma vez. Pesos = os da tela Gerar com os padrões (atraso mínimo = atraso esperado arredondado, intensidade 2, frequência nos últimos 50); `ritmo` usa peso `1 + 4·passouDe²`; sem regras do volante. Todas as estratégias usam a mesma semente. Por estratégia: média de acertos por jogo, margem de 99% (`Z_MARGEM` = 2,576 erros padrão, medidos entre concursos; 99% por ser 5 comparações ao mesmo tempo, correção de Bonferroni), jogos premiados e distribuição. `acasoDoJogo` dá a referência exata (hipergeométrica): média `k·sorteadas/universo` e probabilidade de prêmio pelas faixas da definição (inclui a faixa de 0 acertos da Lotomania).
+
 ### 4.3 Geração de jogos
 
 ```ts
@@ -221,7 +227,7 @@ Algoritmo (`SincronizacaoService.garantirAtualizado(loteriaId)`):
 
 ### 6.1 Navegação
 
-Barra superior: marca "Sorteios" + links Gerar jogos / Resultados anteriores / Estatísticas. Em celular, as mesmas três entradas em `ion-tabs` no rodapé. Tema claro e escuro pelos tokens do protótipo (`--bg`, `--surface`, `--fg`, `--muted`, `--line`, `--accent`, `--ball`, série `--s1`, rampa sequencial `--seq-*`, status `--good/--warn/--crit`). Fontes: Bricolage Grotesque (títulos), Source Sans 3 (texto), JetBrains Mono (números).
+Barra superior: marca "Sorteios" + links Gerar jogos / Resultados anteriores / Estatísticas / Teste. Em celular, as mesmas quatro entradas em `ion-tabs` no rodapé (mais Início e Tema). Tema claro e escuro pelos tokens do protótipo (`--bg`, `--surface`, `--fg`, `--muted`, `--line`, `--accent`, `--ball`, série `--s1`, rampa sequencial `--seq-*`, status `--good/--warn/--crit`). Fontes: Bricolage Grotesque (títulos), Source Sans 3 (texto), JetBrains Mono (números).
 
 ### 6.2 Tela Gerar jogos (mapa do protótipo → componentes)
 
@@ -246,6 +252,12 @@ KPIs: último concurso (data e situação), acumulado atual (com sequência de a
 ### 6.4 Aba Estatísticas das dezenas
 
 Filtro de período (últimos 50 / últimos 100 / ano atual / ano anterior / histórico). KPIs: concursos no período, média por dezena (com esperado), mais sorteada (e menos), mais atrasada. Blocos: frequência por dezena (60 barras, ordenar por dezena/total, 5 mais e 5 menos em destaque, demais esmaecidas); atraso atual (15 maiores, linha de referência no esperado); mais e menos sorteadas (listas com barra); mapa de calor dezena × mês (12 meses, rampa sequencial 0..4+); pares × ímpares por sorteio; soma das dezenas por faixa de 20. Tooltips em todos os marcadores; gráficos em SVG próprio (sem biblioteca), cores por token de tema.
+
+Ritmo de cada dezena (19/10/2026; histórico completo, independe do período): tabela com dezena, atraso atual, "fora há mais tempo que" (barra com `passouDe`), "sai a cada" (intervalo médio; 2 casas quando o esperado é menor que 5, como na Lotofácil) e maior ausência; ordem "mais fora do ritmo" (padrão) ou "por dezena"; rolagem própria com cabeçalho fixo. Nota abaixo compara com o acaso (esperado, faixa observada, chance igual para todas no próximo concurso) e leva à aba Teste.
+
+### 6.6 Aba Teste das estratégias (`/:loteria/teste`)
+
+Janela (últimos 100 / 500 / 1.000 / histórico; os 100 primeiros concursos nunca são testados) e botão "Rodar teste" ("Rodar de novo" troca a semente). Roda `executarTesteEstrategias` em fatias de ~40 ms com barra de progresso; trocar de loteria ou sair da tela interrompe. KPIs: concursos testados, jogos por estratégia, acaso (acertos por jogo e chance de prêmio), conclusão ("Empate" ou quais passaram da margem; se até o aleatório passou, avisa que é sorte da rodada). Gráfico de intervalos (ponto = média, traço = margem de 99%, linha = acaso) e tabela por estratégia (acertos por jogo, diferença do acaso, margem, jogos premiados, resultado).
 
 ### 6.5 Offline e cache no cliente
 

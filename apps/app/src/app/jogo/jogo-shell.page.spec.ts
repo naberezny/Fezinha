@@ -160,10 +160,11 @@ describe('JogoShellPage', () => {
         '/lotomania/gerar',
         '/lotomania/resultados',
         '/lotomania/estatisticas',
+        '/lotomania/teste',
       ]);
     });
 
-    it('a tab bar do celular tem Início, Gerar, Resultados, Estatísticas e Tema, nessa ordem', async () => {
+    it('a tab bar do celular tem Início, Gerar, Resultados, Estatísticas, Teste e Tema, nessa ordem', async () => {
       // Arrange / Act
       const elemento = await navegar('/megasena/gerar');
       const itens = Array.from(elemento!.querySelectorAll('ion-tab-bar > *'));
@@ -174,6 +175,7 @@ describe('JogoShellPage', () => {
         'Gerar',
         'Resultados',
         'Estatísticas',
+        'Teste',
         'Tema',
       ]);
       expect(elemento!.querySelector('[data-teste="aba-inicio"]')?.getAttribute('href')).toBe('/');
@@ -181,6 +183,7 @@ describe('JogoShellPage', () => {
         'gerar',
         'resultados',
         'estatisticas',
+        'teste',
       ]);
     });
 

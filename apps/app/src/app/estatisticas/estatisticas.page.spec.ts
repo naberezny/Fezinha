@@ -1,6 +1,7 @@
 import { Type, computed, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
 import { provideIonicAngular } from '@ionic/angular';
 import { calcularEstatisticas, type Concurso, type Historico, type LoteriaDefinicao } from '@sorteios/core';
 import { MEGA_SENA } from '@sorteios/loterias/mega-sena';
@@ -98,7 +99,7 @@ describe('EstatisticasPage', () => {
   beforeEach(() => {
     store = new HistoricoStoreFake();
     TestBed.configureTestingModule({
-      providers: [provideIonicAngular(), { provide: HistoricoStore, useValue: store }],
+      providers: [provideIonicAngular(), provideRouter([]), { provide: HistoricoStore, useValue: store }],
     });
   });
 
@@ -480,6 +481,72 @@ describe('EstatisticasPage', () => {
 
       // Assert
       expect(componente(fixture, GraficoColunasComponent, 0).itens()).toEqual(pares);
+    });
+
+    describe('ritmo de cada dezena', () => {
+      /** Ritmo contado à mão: intervalos entre aparições, atraso e fração das ausências mais curtas que o atraso. */
+      function ritmoManual(dezena: number) {
+        const indices = concursos.flatMap((c, i) => (c.dezenas.includes(dezena) ? [i] : []));
+        const intervalos = indices.slice(1).map((indice, i) => indice - indices[i]);
+        const atraso = indices.length ? concursos.length - 1 - indices[indices.length - 1] : concursos.length;
+        const media = intervalos.length ? intervalos.reduce((a, b) => a + b, 0) / intervalos.length : undefined;
+        const passouDe = intervalos.length ? intervalos.filter((g) => g - 1 < atraso).length / intervalos.length : 0;
+        return { dezena, atraso, media, passouDe, maiorAusencia: Math.max(0, ...intervalos.map((g) => g - 1)) };
+      }
+
+      /** Linhas da tabela: [dezena, atraso, % fora, sai a cada, maior ausência]. */
+      function linhasRitmo(fixture: ComponentFixture<EstatisticasPage>): string[][] {
+        return Array.from(raiz(fixture).querySelectorAll('[data-teste="ritmo"] tbody tr')).map((tr) =>
+          Array.from(tr.querySelectorAll('td')).map((td) => texto(td)),
+        );
+      }
+
+      it('começa pelas dezenas mais fora do ritmo (fração das ausências, depois atraso, depois dezena)', async () => {
+        // Arrange
+        const esperado = Array.from({ length: 60 }, (_, i) => ritmoManual(i + 1)).sort(
+          (a, b) => b.passouDe - a.passouDe || b.atraso - a.atraso || a.dezena - b.dezena,
+        );
+
+        // Act
+        const fixture = await renderizar();
+
+        // Assert
+        const linhas = linhasRitmo(fixture);
+        expect(linhas).toHaveLength(60);
+        expect(linhas.map((l) => Number(l[0]))).toEqual(esperado.map((r) => r.dezena));
+        expect(linhas[0][1]).toBe(String(esperado[0].atraso));
+        expect(linhas[0][2]).toBe(`${Math.round(esperado[0].passouDe * 100)}%`);
+      });
+
+      it('"por dezena" mostra 01 a 60 com média de intervalo e maior ausência contadas à mão', async () => {
+        // Arrange
+        const fixture = await renderizar();
+        const um = ritmoManual(1);
+
+        // Act
+        const botao = Array.from(raiz(fixture).querySelectorAll<HTMLButtonElement>('[data-teste="ritmo"] srt-segmento button')).find(
+          (b) => texto(b) === 'por dezena',
+        ) as HTMLButtonElement;
+        botao.click();
+        await fixture.whenStable();
+
+        // Assert
+        const linhas = linhasRitmo(fixture);
+        expect(linhas.map((l) => l[0])).toEqual(Array.from({ length: 60 }, (_, i) => dois(i + 1)));
+        expect(linhas[0][3]).toBe((um.media as number).toFixed(1).replace('.', ','));
+        expect(linhas[0][4]).toBe(String(um.maiorAusencia));
+      });
+
+      it('a nota compara com o acaso (a cada 10,0 concursos, 10% de chance) e leva ao teste das estratégias', async () => {
+        // Act
+        const fixture = await renderizar();
+
+        // Assert
+        const nota = raiz(fixture).querySelector('[data-teste="nota-ritmo"]');
+        expect(texto(nota)).toContain('cada dezena sai em média a cada 10,0 concursos');
+        expect(texto(nota)).toContain('a mesma chance de sair (10%)');
+        expect(nota?.querySelector('a')?.getAttribute('href')).toMatch(/teste$/);
+      });
     });
   });
 

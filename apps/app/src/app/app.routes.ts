@@ -30,6 +30,10 @@ export const appRoutes: Route[] = [
         path: 'estatisticas',
         loadComponent: () => import('./estatisticas/estatisticas.page').then((m) => m.EstatisticasPage),
       },
+      {
+        path: 'teste',
+        loadComponent: () => import('./teste/teste.page').then((m) => m.TestePage),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

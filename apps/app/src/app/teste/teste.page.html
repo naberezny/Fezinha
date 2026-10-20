@@ -1,0 +1,142 @@
+<ion-content>
+  <main class="pagina">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{{ loteria().nome }}</p>
+        <h2>Teste das estratégias</h2>
+      </div>
+      <div class="filtros">
+        @if (temDados()) {
+          <span class="eyebrow">Concursos</span>
+          <srt-segmento [opcoes]="opcoesJanela" [(selecionado)]="chaveJanela" rotuloAria="Concursos testados" />
+        }
+      </div>
+    </div>
+
+    @if (temDados()) {
+      <section class="panel card explicacao" data-teste="explicacao">
+        <p>
+          Para cada concurso, o teste gera {{ jogosPorConcurso }} jogos de {{ dezenasPorJogo() }} dezenas com cada estratégia, usando só
+          os resultados <b>anteriores</b> a ele, como se fosse a véspera do sorteio, e conta os acertos. Se alguma
+          estratégia tivesse vantagem, a média dela ficaria acima do acaso, além da margem de erro.
+        </p>
+        <div class="acoes">
+          <button
+            type="button"
+            class="btn primary"
+            data-teste="rodar"
+            [disabled]="executando()"
+            (click)="rodar()"
+          >
+            @if (executando()) {
+              Testando… {{ progressoTexto() }}
+            } @else if (resultado()) {
+              Rodar de novo
+            } @else {
+              Rodar teste
+            }
+          </button>
+          <span class="hint">{{ concursosATestar() }} concursos · os {{ aquecimento }} primeiros ficam de fora como base</span>
+        </div>
+        @if (executando()) {
+          <div class="progresso" role="progressbar" aria-label="Progresso do teste" [attr.aria-valuenow]="progresso() * 100" aria-valuemin="0" aria-valuemax="100">
+            <i [style.width.%]="progresso() * 100"></i>
+          </div>
+        }
+      </section>
+
+      @if (resultado(); as r) {
+        <div class="kpis" data-teste="kpis">
+          @for (kpi of kpis(); track kpi.titulo) {
+            <srt-kpi [titulo]="kpi.titulo" [valor]="kpi.valor" [detalhe]="kpi.detalhe" />
+          }
+        </div>
+
+        <div class="grid2">
+          @if (grafico(); as g) {
+            <section class="panel card wide" data-teste="grafico" aria-labelledby="titulo-grafico">
+              <div class="head">
+                <div>
+                  <h3 id="titulo-grafico">Acertos por jogo × acaso</h3>
+                  <div class="sub">ponto = média de cada estratégia · traço = margem de erro (99%) · linha = acaso</div>
+                </div>
+              </div>
+              <svg role="img" [attr.viewBox]="'0 0 ' + g.largura + ' ' + g.altura" aria-label="Média de acertos de cada estratégia comparada ao acaso">
+                <line class="acaso" [attr.x1]="g.xAcaso" [attr.x2]="g.xAcaso" y1="2" [attr.y2]="g.yFimLinhas" />
+                @for (linha of g.linhas; track linha.rotulo) {
+                  <g [class]="linha.veredito">
+                    <text class="rotulo" x="0" [attr.y]="linha.y + 4">{{ linha.rotulo }}</text>
+                    <line class="traco" [attr.x1]="linha.x1" [attr.x2]="linha.x2" [attr.y1]="linha.y" [attr.y2]="linha.y" />
+                    <line class="traco" [attr.x1]="linha.x1" [attr.x2]="linha.x1" [attr.y1]="linha.y - 5" [attr.y2]="linha.y + 5" />
+                    <line class="traco" [attr.x1]="linha.x2" [attr.x2]="linha.x2" [attr.y1]="linha.y - 5" [attr.y2]="linha.y + 5" />
+                    <circle class="ponto" [attr.cx]="linha.x" [attr.cy]="linha.y" r="5" />
+                  </g>
+                }
+                @for (marca of g.escala; track $index) {
+                  <text class="escala" [attr.x]="marca.x" [attr.y]="g.yEscala" text-anchor="middle">{{ marca.texto }}</text>
+                }
+              </svg>
+              <div class="legend">
+                <span><i class="amostra-acaso"></i>acaso: {{ acasoTexto() }} acertos por jogo</span>
+                <span>traço cruzando a linha = sem diferença do acaso</span>
+              </div>
+            </section>
+          }
+
+          <section class="panel card wide" data-teste="tabela" aria-labelledby="titulo-tabela">
+            <div class="head">
+              <div>
+                <h3 id="titulo-tabela">Resultado por estratégia</h3>
+                <div class="sub">concursos {{ r.primeiroConcurso }} a {{ r.ultimoConcurso }} · prêmio pelo acaso: {{ premioAcaso() }} dos jogos</div>
+              </div>
+            </div>
+            <div class="tbl-wrap">
+              <table aria-label="Resultado por estratégia">
+                <thead>
+                  <tr>
+                    <th scope="col">Estratégia</th>
+                    <th scope="col" class="dir">Acertos por jogo</th>
+                    <th scope="col" class="dir">Diferença do acaso</th>
+                    <th scope="col" class="dir">Margem de erro</th>
+                    <th scope="col" class="dir">Jogos premiados</th>
+                    <th scope="col">Resultado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (linha of linhas(); track linha.estrategia) {
+                    <tr [attr.data-estrategia]="linha.estrategia">
+                      <td>
+                        <b>{{ linha.nome }}</b>
+                        <div class="muted descricao">{{ linha.descricao }}</div>
+                      </td>
+                      <td class="num dir">{{ linha.acertos }}</td>
+                      <td class="num dir">{{ linha.diferenca }}</td>
+                      <td class="num dir">{{ linha.margem }}</td>
+                      <td class="num dir">{{ linha.premiados }}</td>
+                      <td><span class="pill" [class]="linha.veredito">{{ linha.vereditoTexto }}</span></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <p class="hint nota" data-teste="nota">
+              A margem de erro é o quanto a média varia só por sorte: dentro dela, a estratégia empatou com o acaso. Ela usa
+              99% de confiança porque são cinco estratégias de uma vez; assim, em cerca de 1 rodada a cada 20 alguma passa da
+              margem só por sorte. Rodar de novo sorteia outros jogos e mostra se a diferença se repete. Os jogos seguem os
+              pesos da tela Gerar, sem as regras do volante.
+            </p>
+          </section>
+        </div>
+      }
+    } @else if (historico()) {
+      <div class="vazio" role="status" data-teste="sem-concursos">Histórico curto demais para testar (é preciso mais de 100 concursos).</div>
+    } @else if (erro() && !carregando()) {
+      <div class="vazio" role="alert" data-teste="erro">
+        <p>{{ erro() }}</p>
+        <button type="button" class="btn sm" data-teste="tentar-novamente" (click)="tentarNovamente()">Tentar de novo</button>
+      </div>
+    } @else {
+      <div class="vazio" role="status" data-teste="carregando">Carregando histórico…</div>
+    }
+  </main>
+</ion-content>

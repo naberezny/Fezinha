@@ -6,3 +6,5 @@ export * from './lib/filtros';
 export * from './lib/pesos';
 export * from './lib/geracao';
 export * from './lib/rng';
+export * from './lib/ritmo';
+export * from './lib/teste-estrategias';

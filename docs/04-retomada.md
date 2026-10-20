@@ -4,19 +4,20 @@
 - Webapp Sorteios completo e verificado: `apps/api` (NestJS 11 + Prisma 7.10.1/**PostgreSQL 17** via `docker-compose.yml`), `apps/app` (Angular 22 + Ionic 9, PWA), libs `core`, `ui`, `contratos`, `loterias/{comum,mega-sena,lotomania,lotofacil}`.
 - Loterias: Mega-Sena (3.070 concursos), Lotomania (2.987) e Lotofácil (3.807); planilhas oficiais `Lotomania.xlsx` e `Lotofacil.xlsx` na raiz. Sincronização real com a Caixa funciona (`POST /loterias/:id/sincronizar`, header `X-Chave-Admin`).
 - Banco: até 19/10/2026 era SQLite (`apps/api/dados/sorteios.db`, arquivo antigo ainda na pasta, ignorado pelo git e sem uso). Detalhes da migração: seção 9 de `docs/01-especificacao.md`.
-- Navegação: `/` (cartões por jogo) → `/:loteria/gerar|resultados|estatisticas`; cor por jogo (`cor` na definição); filtros ocultos quando não aplicáveis.
+- Navegação: `/` (cartões por jogo) → `/:loteria/gerar|resultados|estatisticas|teste`; cor por jogo (`cor` na definição); filtros ocultos quando não aplicáveis.
 - Artefato https://claude.ai/artifact/RxVZTVtRah4u8dypaeJ8nD = app real em build estática (`pnpm nx build app --configuration=artefato` + `tools/artefato/montar.py`), versão 9 (ainda sem a Lotofácil).
-- Último gate (19/10, Jest direto): 814 testes verdes (api 181, app 291, core 170, ui 90, mega-sena 45, lotomania 16, lotofacil 10, comum 6, contratos 5); lint sem erros; build de api e app ok.
+- Ritmo das dezenas (tabela em Estatísticas) e aba Teste das estratégias (19/10): nos resultados reais nenhuma estratégia, incluindo o "ritmo" de cada dezena, sai do acaso. Detalhes: `docs/03-checklist-testes.md` seção K e seções 4.2, 4.5 e 6.6 da especificação.
+- Último gate (19/10, Jest direto): 844 testes verdes (api 181, app 303, core 186, ui 92, mega-sena 45, lotomania 16, lotofacil 10, comum 6, contratos 5); lint sem erros; build de api e app ok.
 
 ## Decisões fechadas
-Ver `docs/01-especificacao.md` (D1–D12) e `docs/03-checklist-testes.md` (seções G, H, I, J). Chance "1 em N" arredondada (Lotomania 11.372.636; Caixa publica 11.372.635 truncado). Regra "máx. 3 por linha" inaplicável quando dezenas > 3 × linhas. Lotofácil: regras `quadrantes`, `historico`, `pares` (sem `consecutivas` e `linhas`, que reprovam 87% e 97% dos resultados reais).
+Ver `docs/01-especificacao.md` (D1–D12) e `docs/03-checklist-testes.md` (seções G, H, I, J, K). Chance "1 em N" arredondada (Lotomania 11.372.636; Caixa publica 11.372.635 truncado). Regra "máx. 3 por linha" inaplicável quando dezenas > 3 × linhas. Lotofácil: regras `quadrantes`, `historico`, `pares` (sem `consecutivas` e `linhas`, que reprovam 87% e 97% dos resultados reais).
 
 ## Pendências (dono: João decide)
 - I6: tela inicial só mostra o último concurso da loteria ativa; proposta: endpoint `GET /loterias/resumo`.
 - G12: tela "Meus jogos" (jogos salvos existem no IndexedDB, sem tela).
 - G3: fixture real de concurso **da Mega-Sena** com ganhador da Sena (o formato dos locais já foi confirmado com a Lotofácil 3807).
 - D14: Lighthouse não rodado.
-- Artefato: republicar com a Lotofácil.
+- Artefato: republicar com a Lotofácil, o ritmo e a aba Teste.
 - Docker (imagem da API/app) ficou para depois; hoje o `docker-compose.yml` só sobe o PostgreSQL.
 - Fase 5 (lojas): Capacitor Android/iOS, PWABuilder/MSIX, política de privacidade, contas.
 

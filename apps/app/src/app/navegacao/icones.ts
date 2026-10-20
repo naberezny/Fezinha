@@ -1,6 +1,7 @@
 import { addIcons } from 'ionicons';
 import {
   diceOutline,
+  flaskOutline,
   homeOutline,
   listOutline,
   moonOutline,
@@ -11,6 +12,7 @@ import {
 /** Registra os ícones usados na navegação (barra superior e tab bar). Idempotente: importe pelo efeito. */
 addIcons({
   'dice-outline': diceOutline,
+  'flask-outline': flaskOutline,
   'home-outline': homeOutline,
   'list-outline': listOutline,
   'stats-chart-outline': statsChartOutline,

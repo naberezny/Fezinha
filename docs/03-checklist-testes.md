@@ -132,3 +132,15 @@ Comandos rodam na raiz `C:\Users\joao.naberezny\repositorios\Sorteios`.
 - [x] J8 Defeito achado na Lotofácil e corrigido: atraso esperado fracionário (25/15) aparecia cru (`1.6666666666666667`); agora "1,7" (`formatarAtraso` no core) e atraso mínimo padrão 2.
 - [x] J9 Corrigido também o teste de `libs/loterias/comum`, que não compilava desde a criação do campo `cor` (6 testes voltaram a rodar).
 - Gate desta rodada (Jest direto): api 181, app 291, core 170, ui 90, mega-sena 45, lotomania 16, lotofacil 10, comum 6, contratos 5 = 814; lint sem erros; build de api e app ok.
+
+## K. Ritmo das dezenas e teste das estratégias (2026-10-19)
+
+- [x] K1 Análise nos resultados reais: o intervalo médio entre aparições por dezena fica dentro do acaso (Mega-Sena 8,6 a 12,1 para esperado 10; Lotomania 4,6 a 5,5 para 5; Lotofácil 1,60 a 1,75 para 1,67); a correlação entre um intervalo e o seguinte fica no nível do ruído (6/60, 8/100 e 1/25 dezenas além de 2σ, contra ~3, 5 e 1 esperadas).
+- [x] K2 `libs/core`: `calcularRitmo` / `AcompanhamentoRitmo` (8 testes) e `executarTesteEstrategias` / `testarEstrategias` / `acasoDoJogo` (8 testes); `sortearDezenas` exportado de `geracao.ts` para o teste usar a mesma roleta.
+- [x] K3 Estatísticas: tabela "Ritmo de cada dezena" (ordem "mais fora do ritmo" e "por dezena", 2 casas na Lotofácil, rolagem própria, colunas legíveis no celular) e nota com o acaso + link para o Teste; 3 testes novos contados à mão.
+- [x] K4 Nova aba Teste (`/:loteria/teste`, barra superior e tab bar): janela 100/500/1.000/histórico, execução em fatias com progresso, KPIs, gráfico de intervalos e tabela; 8 testes; rotas e navegação atualizadas.
+- [x] K5 Resultado no app, histórico completo, 10 jogos por concurso: nenhuma estratégia sai do acaso (Mega-Sena 2.971 concursos: aleatório 0,608, atrasadas 0,590, frequentes 0,605, mista 0,605, ritmo 0,611, acaso 0,600, margens ±0,010 a ±0,016).
+- [x] K6 Defeito achado na verificação e corrigido: com margem de 95% o próprio "aleatório" aparecia "acima do acaso" (5 comparações ao mesmo tempo: ~23% de chance de alguma passar por sorte). Margem passou a 99% (Bonferroni) e a conclusão avisa quando até o aleatório passa.
+- [x] K7 Desempenho (Node, histórico completo, 10 jogos por concurso): Mega-Sena 0,5 s, Lotofácil 0,7 s, Lotomania 4,3 s; no app roda em fatias de ~40 ms, sem travar a tela.
+- [x] K8 Volante da Lotofácil (5 × 5): as divisórias dos quadrantes cortavam a 3ª coluna e a 3ª linha ao meio; agora ficam no vão depois delas, como em `quadrante()` do core (Q1 = 01..03, 06..08, 11..13). Grades pares continuam no centro; 2 testes novos.
+- Gate desta rodada (Jest direto): api 181, app 303, core 186, ui 92, mega-sena 45, lotomania 16, lotofacil 10, comum 6, contratos 5 = 844; lint sem erros (avisos antigos); build de api e app ok.

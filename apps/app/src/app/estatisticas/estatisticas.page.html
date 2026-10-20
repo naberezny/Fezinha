@@ -74,6 +74,53 @@
           </div>
         </section>
 
+        <section class="panel card wide" data-teste="ritmo" aria-labelledby="titulo-ritmo">
+          <div class="head">
+            <div>
+              <h3 id="titulo-ritmo">Ritmo de cada dezena</h3>
+              <div class="sub">histórico completo · de quantos em quantos concursos cada dezena volta a sair</div>
+            </div>
+            <srt-segmento [opcoes]="opcoesOrdemRitmo" [(selecionado)]="chaveOrdemRitmo" rotuloAria="Ordenação do ritmo" />
+          </div>
+          <div class="tbl-wrap tabela-ritmo">
+            <table aria-label="Ritmo de cada dezena">
+              <thead>
+                <tr>
+                  <th scope="col">Dezena</th>
+                  <th scope="col" class="dir">Atraso atual</th>
+                  <th scope="col">Fora há mais tempo que</th>
+                  <th scope="col" class="dir">Sai a cada</th>
+                  <th scope="col" class="dir">Maior ausência</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (linha of linhasRitmo(); track linha.dezena) {
+                  <tr>
+                    <td><srt-bola [dezena]="linha.dezena" [pequena]="true" /></td>
+                    <td class="num dir">{{ linha.atraso }}</td>
+                    <td>
+                      <div class="passou" [attr.aria-label]="linha.passouDeTexto + ' das ausências dela'">
+                        <span class="trilho"><i [style.width.%]="linha.passouDe"></i></span>
+                        <span class="num">{{ linha.passouDeTexto }}</span>
+                      </div>
+                    </td>
+                    <td class="num dir">{{ linha.intervaloMedio }}</td>
+                    <td class="num dir">{{ linha.maiorAusencia }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="hint nota-ritmo" data-teste="nota-ritmo">
+            "Sai a cada" é a média de concursos entre uma aparição e a seguinte; "fora há mais tempo que" diz em quantas
+            das ausências anteriores ela voltou antes do atraso de hoje. Pelo acaso, cada dezena sai em média a cada
+            {{ notaRitmo().esperado }} concursos; aqui as médias vão de {{ notaRitmo().menor }} a {{ notaRitmo().maior }},
+            diferença que o acaso também produz. O ritmo descreve o passado: no próximo concurso todas as dezenas têm a
+            mesma chance de sair ({{ notaRitmo().chance }}).
+            <a routerLink="../teste">Veja o teste das estratégias</a>.
+          </p>
+        </section>
+
         <section class="panel card wide" data-teste="mapa-calor" aria-labelledby="titulo-mapa">
           <div class="head">
             <div>
