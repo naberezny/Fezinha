@@ -1,0 +1,78 @@
+# Produção do Fezinha. Na pasta deploy/, com o .env preenchido (ver .env.exemplo):
+#   docker compose up -d --build
+# Só o container "web" publica porta, por padrão apenas em 127.0.0.1: o HTTPS e o domínio ficam com o nginx do
+# servidor (no aaPanel: site com proxy reverso para http://127.0.0.1:${PORTA_WEB}). Ver ENDERECO_WEB.
+name: fezinha
+
+x-banco: &banco
+  DATABASE_URL: postgresql://sorteios:${POSTGRES_PASSWORD:?defina no .env}@postgres:5432/sorteios
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: sorteios
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina no .env}
+      POSTGRES_DB: sorteios
+    volumes:
+      - dados:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U sorteios -d sorteios']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  # Aplica as migrations e sai; a API só sobe depois que ele termina bem.
+  # Também serve para a carga histórica: docker compose run --rm migrar node tools/carga-historica/... (ver README).
+  migrar:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      target: ferramentas
+    image: fezinha-ferramentas
+    environment:
+      <<: *banco
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      target: api
+    image: fezinha-api
+    environment:
+      <<: *banco
+      CHAVE_ADMIN: ${CHAVE_ADMIN:?defina no .env}
+      # nginx do servidor + nginx do container.
+      CONFIAR_PROXY: '2'
+      # A Caixa bloqueia IPs de fora do Brasil: com CAIXA_PROXY, o fetch da API sai pelo proxy (Node 24).
+      # Vazio = conexão direta.
+      NODE_USE_ENV_PROXY: '1'
+      HTTPS_PROXY: ${CAIXA_PROXY:-}
+      NO_PROXY: localhost,127.0.0.1,postgres
+    depends_on:
+      migrar:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      target: web
+    image: fezinha-web
+    ports:
+      # Padrão: só 127.0.0.1 (o nginx do servidor faz o HTTPS). ENDERECO_WEB=0.0.0.0 abre pelo IP, sem HTTPS;
+      # porta publicada pelo Docker passa por cima do ufw.
+      - '${ENDERECO_WEB:-127.0.0.1}:${PORTA_WEB:-8095}:80'
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  dados:

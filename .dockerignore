@@ -1,0 +1,21 @@
+# Contexto do build de produção (deploy/Dockerfile): só o código-fonte.
+.git
+.angular
+.nx
+.vscode
+.claude
+node_modules
+dist
+coverage
+tmp
+apps/api/dados
+apps/api/tmp
+apps/api/src/prisma/gerado
+docs
+*.xlsx
+*.db
+*.py
+*.cmd
+prototipo.template.html
+.env
+deploy/.env
